@@ -1,0 +1,28 @@
+-main QueryVersions
+-neko bin/QueryVersions.n
+-dce full
+-lib hurts
+
+--next
+-main UpdateBinary
+-neko bin/UpdateBinary.n
+-dce full
+-lib hurts
+
+--next
+-main QueryBinaries
+-neko bin/QueryBinaries.n
+-dce full
+-lib hurts
+
+--next
+-main IsReleased
+-neko bin/IsReleased.n
+-dce full
+-lib hurts
+
+--next
+-main UpdateRelease
+-neko bin/UpdateRelease.n
+-dce full
+-lib hurts

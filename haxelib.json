@@ -1,0 +1,12 @@
+{
+  "name": "nme-building",
+  "url" : "https://github.com/nmehost/nme-building.git/",
+  "license": "MIT",
+  "tags": ["haxe", "build", "nme" ],
+  "description": "Builds and packages haxelibs from source",
+  "version": "1.0",
+  "releasenote": "Initial release, everything is working correctly",
+  "contributors": ["gamehaxe"],
+  "dependencies": { }
+}
+
