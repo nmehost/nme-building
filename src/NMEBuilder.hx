@@ -6,7 +6,7 @@ class NMEBuilder extends Builder
 {
    public function new(inBs:BuildServer)
    {
-      super(inBs,"nme",true, "http://nekonme.googlecode.com/svn/");
+      super(inBs,"nme",true, "https://github.com/nmehost/nme",true);
       removeBinaries(["rpi","linux"]);
    }
 

@@ -7,7 +7,9 @@ class Builder
    var bs:BuildServer;
 
    public var name:String;
-   public var svnUrl:String;
+   public var isGit:Bool;
+   public var url:String;
+
    public var versionUrl:String;
    public var svnCmd:String;
    public var revisionMatch:EReg;
@@ -19,13 +21,15 @@ class Builder
    public var binaries:Array<String>;
    public var allBinaries:Array<String>;
    public var scratchDir:String;
+   public var cloneDir:String;
 
-   public function new(inBs:BuildServer,inName:String,inHasBinaries:Bool, inSvnUrl:String)
+   public function new(inBs:BuildServer,inName:String,inHasBinaries:Bool, inUrl:String,inIsGit:Bool=false)
    {
       revisionMatch = ~/^Revision: (\S+)/;
       bs = inBs;
       name = inName;
       binaryVersion = 0;
+      isGit = inIsGit;
       svnCmd = Sys.getEnv("BS_SVN");
       if (svnCmd==null || svnCmd=="")
         svnCmd = "svn";
@@ -42,7 +46,10 @@ class Builder
 
       scratchDir = bs.scratchDir;
 
-      setSnvUrl(inSvnUrl);
+      if (isGit)
+         setGitUrl(inUrl);
+      else
+         setSnvUrl(inUrl);
    }
 
    function removeBinaries(remove:Array<String>)
@@ -69,9 +76,21 @@ class Builder
 
    public function setSnvUrl(inUrl:String)
    {
-      svnUrl = inUrl;
-      versionUrl = svnUrl + "trunk/haxelib.json";
+      url = inUrl;
+      versionUrl = url + "trunk/haxelib.json";
    }
+
+   public function setGitUrl(inUrl:String)
+   {
+      url = inUrl;
+      cloneDir = scratchDir + "/clones";
+      if (!FileSystem.exists(cloneDir))
+         FileSystem.createDirectory(cloneDir);
+      cloneDir += "/" + name;
+      //versionUrl = "https://raw." + url.substr(8) + "/master/haxelib.json";
+      versionUrl = cloneDir + "/haxelib.json";
+   }
+
 
    inline function log(s:String) { bs.log(s); }
 
@@ -115,13 +134,47 @@ class Builder
       return result;
    }
 
+   public function updateClone()
+   {
+      if (FileSystem.exists(cloneDir))
+      {
+         log("update...");
+         Sys.setCwd(cloneDir);
+         command("git",["pull"] );
+      }
+      else
+      {
+         log("clone...");
+         Sys.setCwd(scratchDir + "/clones");
+         log("cloning git clone " +  url + ".git");
+         command("git",["clone", url + ".git"] );
+      }
+   }
+
    public function prepareBuild() : Int
    {
+      log("Prepare build...");
       Sys.setCwd(scratchDir);
       var dir = getCheckoutDir();
       scrubDir(dir);
-      log("checkout...");
-      command(svnCmd,["checkout",svnUrl + "/trunk", dir]);
+
+      if (isGit)
+      {
+         updateClone();
+         Sys.setCwd(scratchDir);
+         FileSystem.createDirectory(dir);
+         var files = FileSystem.readDirectory(cloneDir);
+         for(file in files)
+         {
+            if (file.substr(0,1)!=".")
+               command("cp", ["-rp", cloneDir+"/"+file, dir] );
+         }
+      }
+      else
+      {
+         log("checkout...");
+         command(svnCmd,["checkout",url + "/trunk", dir]);
+      }
 
       var version = File.getContent(dir + "/haxelib.json");
       var data = haxe.Json.parse(version);
@@ -144,6 +197,9 @@ class Builder
 
    public function build()
    {
+      if (isGit)
+         updateClone();
+
       if (hasBinaries())
          buildBinaries();
 
@@ -157,6 +213,7 @@ class Builder
       log("Bin ver : "+ ver);
       var have:Array<Dynamic> = getServerBinaries(ver);
 
+      log("Have : "+ have);
       binaryVersion = 0;
       for(bin in binaries)
       {
@@ -311,7 +368,7 @@ class Builder
          }
       }
 
-      svnVersion = getSvnRevision(svnUrl);
+      svnVersion = getSvnRevision(url);
       log("      svn version = " + svnVersion);
 
       var isReleased = hurts.Lib.runJson("IsReleased.n", { project:name, version:svnVersion } );
@@ -334,8 +391,9 @@ class Builder
 
    public function getBinaryVersion()
    {
-      log("Check repo data ...");
-      var version = Http.requestUrl(versionUrl);
+      log("Check repo data " + versionUrl);
+
+      var version = isGit ? File.getContent(versionUrl) : Http.requestUrl(versionUrl);
       var data = haxe.Json.parse(version);
 
       return Std.parseInt(data.binaryversion);
