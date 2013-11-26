@@ -26,3 +26,9 @@
 -neko bin/UpdateRelease.n
 -dce full
 -lib hurts
+
+--next
+-main GetVersionInfo
+-neko bin/GetVersionInfo.n
+-dce full
+-lib hurts
