@@ -7,7 +7,6 @@ class Builder
    var bs:BuildServer;
 
    public var name:String;
-   public var isGit:Bool;
    public var url:String;
 
    public var versionUrl:String;
@@ -16,10 +15,8 @@ class Builder
    public var revisionMatch:EReg;
    public var commitMatch:EReg;
 
-   public var svnVersion:Int=0;
-
    public var binaryVersion:Int=0;
-   public var haxelibVersion:String="";
+   public var baseVersion:String="";
    public var gitVersion:String;
    public var versionInfo:Dynamic=null;
 
@@ -28,18 +25,15 @@ class Builder
    public var scratchDir:String;
    public var cloneDir:String;
 
-   public function new(inBs:BuildServer,inName:String,inHasBinaries:Bool, inUrl:String,inIsGit:Bool=false)
+   public function new(inBs:BuildServer,inName:String,inHasBinaries:Bool, inUrl:String)
    {
       revisionMatch = ~/^Revision: (\S+)/;
       commitMatch = ~/^commit (\S+)/;
       bs = inBs;
       name = inName;
       binaryVersion = 0;
-      isGit = inIsGit;
       gitVersion = "";
-      svnCmd = Sys.getEnv("BS_SVN");
-      if (svnCmd==null || svnCmd=="")
-        svnCmd = "svn";
+
       gitCmd = Sys.getEnv("BS_GIT");
       if (gitCmd==null || gitCmd=="")
         gitCmd = "git";
@@ -56,10 +50,7 @@ class Builder
 
       scratchDir = bs.scratchDir;
 
-      if (isGit)
-         setGitUrl(inUrl);
-      else
-         setSnvUrl(inUrl);
+      setGitUrl(inUrl);
    }
 
    function removeBinaries(remove:Array<String>)
@@ -82,12 +73,6 @@ class Builder
    public function getCheckoutDir()
    {
       return name;
-   }
-
-   public function setSnvUrl(inUrl:String)
-   {
-      url = inUrl;
-      versionUrl = url + "trunk/haxelib.json";
    }
 
    public function setGitUrl(inUrl:String)
@@ -169,10 +154,10 @@ class Builder
       var data = haxe.Json.parse(File.getContent(jsonFile));
 
       binaryVersion = Std.parseInt(data.binaryversion);
-      haxelibVersion = data.version;
+      baseVersion = data.version;
 
 
-      var query = { bin:binaryVersion, haxelib:haxelibVersion, git:gitVersion };
+      var query = { binaryVersion:binaryVersion, base:baseVersion, git:gitVersion, project:name };
       log(query + "...");
       versionInfo = hurts.Lib.runJson("GetVersionInfo.n", query );
       log(versionInfo);
@@ -195,24 +180,6 @@ class Builder
       }
    }
 
-   public function prepareBuild() : Int
-   {
-      log("Prepare build...");
-      Sys.setCwd(scratchDir);
-      var dir = getCheckoutDir();
-      scrubDir(dir);
-
-      log("checkout...");
-      command(svnCmd,["checkout",url + "/trunk", dir]);
-
-      var version = File.getContent(dir + "/haxelib.json");
-      var data = haxe.Json.parse(version);
-      var binaryVersion = Std.parseInt(data.binaryversion);
-
-      log("Done " + binaryVersion);
-      return binaryVersion;
-   }
-
 
    public function buildBinary(inBinary:String)
    {
@@ -226,8 +193,7 @@ class Builder
 
    public function build()
    {
-      if (isGit)
-         updateClone();
+      updateClone();
 
       if (hasBinaries())
          buildBinaries();
@@ -238,57 +204,26 @@ class Builder
 
    public function buildBinaries()
    {
-      if (isGit)
+      var first = true;
+      var have:Array<Dynamic> = versionInfo.have;
+      log("Build binaries, have " + have );
+      for(bin in binaries)
       {
-         var first = true;
-         var have:Array<Dynamic> = versionInfo.have;
-         for(bin in binaries)
+         var found = Lambda.exists(have,function(x) return bin==x);
+         if (!found)
          {
             log(bin + "...");
-            var found = !Lambda.exists(have,function(x) bin==x);
-            if (!found)
+            if (first)
             {
-               if (first)
-               {
-                  createWorkingCopy();
-                  first = false;
-               }
+               createWorkingCopy();
+               first = false;
+            }
 
-               buildBinary(bin);
-            }
-            else
-            {
-               log("Already built :" + bin );
-            }
+            buildBinary(bin);
          }
-      }
-      else
-      {
-         var ver = getBinaryVersion();
-         log("Bin ver : "+ ver);
-         var have:Array<Dynamic> = getServerBinaries(ver);
-
-         log("Have : "+ have);
-         binaryVersion = 0;
-         for(bin in binaries)
+         else
          {
-            log(bin + "...");
-            var found = false;
-            for(b in have)
-               if (b==bin)
-                  found = true;
-
-            if (!found)
-            {
-               if (binaryVersion==0)
-                  binaryVersion = prepareBuild();
-
-               buildBinary(bin);
-            }
-            else
-            {
-               log("Already built :" + bin );
-            }
+            log("Already built :" + bin );
          }
       }
    }
@@ -317,38 +252,12 @@ class Builder
 
    public function buildRelease(buildNumber:Int)
    {
+      log("Releasing " + buildNumber);
+
+      createWorkingCopy();
       var dir = getCheckoutDir();
 
-      if (!isGit)
-      {
-         createWorkingCopy();
-      }
-      else
-      {
-         var binVersion = prepareBuild();
-         if (hasBinaries())
-         {
-            log("Check binaries built...");
-            var have = getServerBinaries(binVersion);
-            for(bin in allBinaries)
-            {
-               var found = false;
-               for(h in have)
-                  if (h==bin) found = true;
-               if (!found)
-               {
-                  throw("Missing binary  : " + bin );
-                  return;
-               }
-            }
-         }
-         buildNumber = getSvnRevision(dir);
-      }
-
-      log("Releasing " + buildNumber);
       Sys.setCwd(dir);
-      if (!isGit)
-         removeSpecialFiles(".");
 
       var jsonFile = "haxelib.json";
       var lines = File.getContent(jsonFile).split("\n");
@@ -381,7 +290,7 @@ class Builder
       for(bin in allBinaries)
       {
          var file = name + "-bin-" + bin + ".tgz";
-         var url = "http://" + Sys.getEnv("HURTS_HOST") + "/binaries/" + name + "/" + binVersion + "/" + file;
+         var url = "http://" + Sys.getEnv("HURTS_HOST") + "/binaries/" + name + "/" + binaryVersion + "/" + file;
          log("fetching " + url + "...");
          var data = haxe.Http.requestUrl(url);
          File.saveBytes( file, haxe.io.Bytes.ofString(data) );
@@ -406,11 +315,8 @@ class Builder
       log("sending " + zipName + "...");
       hurts.Lib.sendWebFile(zipName, "releases/" + name + "/" + zipName);
       log("update release db... ");
-      if (isGit)
-         hurts.Lib.runJson("UpdateRelease.n", { project:name, version:buildNumber, name:newVersion,
-                  git:gitVersion } );
-      else
-         hurts.Lib.runJson("UpdateRelease.n", { project:name, version:buildNumber, name:newVersion  } );
+
+      hurts.Lib.runJson("UpdateRelease.n", { project:name, base:baseVersion, build:buildNumber, release:newVersion, git:gitVersion } );
    }
 
 
@@ -433,9 +339,9 @@ class Builder
    {
       if (hasBinaries())
       {
-         var ver = isGit ? binaryVersion : getBinaryVersion();
+         var ver = binaryVersion;
          log("Check binaries built...");
-         var have:Array<Dynamic> = getServerBinaries( ver );
+         var have:Array<Dynamic> = versionInfo.have;
          if (have.length < allBinaries.length)
          {
             log("binaries not built yet : " + have.length + "/" + allBinaries.length );
@@ -443,27 +349,13 @@ class Builder
          }
       }
 
-      if (isGit)
+      if (!versionInfo.isReleased)
       {
-         if (!versionInfo.isReleased)
-         {
-            buildRelease(versionInfo.buildNumber);
-         }
-         else
-            log("      already released.");
+         buildRelease(versionInfo.buildNumber);
       }
       else
       {
-         svnVersion = getSvnRevision(url);
-         log("      svn version = " + svnVersion);
-
-         var isReleased = hurts.Lib.runJson("IsReleased.n", { project:name, version:svnVersion } );
-         if (Std.parseInt(isReleased)>0 )
-         {
-            log("      already released = " + svnVersion);
-            return;
-         }
-         buildRelease(svnVersion);
+         log("      already released.");
       }
    }
 
@@ -475,16 +367,6 @@ class Builder
       return hurts.Lib.runJson("QueryBinaries.n", query );
    }
 
-
-   public function getBinaryVersion()
-   {
-      log("Check repo data " + versionUrl);
-
-      var version = isGit ? File.getContent(versionUrl) : Http.requestUrl(versionUrl);
-      var data = haxe.Json.parse(version);
-
-      return Std.parseInt(data.binaryversion);
-   }
 }
 
 

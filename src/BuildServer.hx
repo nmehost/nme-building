@@ -80,10 +80,10 @@ class BuildServer
       var builders:Array<Builder> =
          [
             new HxcppBuilder(this),
-            new NMEBuilder(this),
-            new Builder(this,"gm2d",false, "http://gm2d.googlecode.com/svn/"),
-            new Builder(this,"hurts",false, "http://hurts.googlecode.com/svn/"),
-            new Builder(this,"bs-buildserver",false, "http://bs-buildserver.googlecode.com/svn/")
+            new NMEBuilder(this)
+            //new Builder(this,"gm2d",false, "http://gm2d.googlecode.com/svn/"),
+            //new Builder(this,"hurts",false, "http://hurts.googlecode.com/svn/"),
+            //new Builder(this,"bs-buildserver",false, "http://bs-buildserver.googlecode.com/svn/")
          ];
 
       while(true)

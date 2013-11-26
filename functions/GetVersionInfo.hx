@@ -20,16 +20,22 @@ class GetVersionInfo
          result[idx++] = row.platform;
       info.have = result;
 
-      var rset = connect.request("SELECT project,builtNumber FROM bsRelease where git=" + 
-                 connect.quote(query.git) );
-      info.isReleased =  rset.hasNext();
+      var rset = connect.request("SELECT build,git FROM bsRelease where project=" + 
+                 connect.quote(query.project) + " and base=" + connect.quote(query.base) );
 
-      var rset = connect.request("SELECT MAX(buildNumber) FROM bsBuild where haxelib=" + 
-                 connect.quote(query.haxelib) + " project =" + proj );
-      if (rset==null)
-         info.buildNumber = 1;
-      else
-         info.buildNumber = rset.getIntResult(0) + 1;
+      var biggest = 0;
+      info.isReleased = false;
+      for(row in rset)
+      {
+         if (row.git == query.git)
+         {
+            info.isReleased = true;
+            info.buildNumber = row.build;
+            break;
+         }
+      }
+      if (!info.isReleased)
+         info.buildNumber = biggest + 1;
 
       Sys.println( haxe.Json.stringify(info) );
    }
