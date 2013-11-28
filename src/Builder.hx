@@ -74,7 +74,7 @@ class Builder
 
    public function getCheckoutDir()
    {
-      return name;
+      return scratchDir + "/" + name;
    }
 
    public function setGitUrl(inUrl:String)
@@ -211,7 +211,7 @@ class Builder
          var define = name.toUpperCase() + "_BINARY_VERSION";
          var lines = [
            '#ifndef $define',
-           '#define $define "$inVersionName"',
+           '#define $define "$version"',
            '#endif'
            ];
         File.saveContent( writeBinaryVersionFilename, lines.join("\n") );
@@ -335,7 +335,7 @@ class Builder
                notes.push( l.substr(2) );
          for(n in versionInfo.noteCount...notes.length)
             newNotes.push( notes[notes.length-1-n] );
-         log("New notes:\n" + newNotes.join("\n") );
+         log("New notes: " + newNotes.join("//") );
       }
 
       writeVersions(newVersion);
@@ -356,7 +356,13 @@ class Builder
          if (FileSystem.exists("bin"))
             command("chmod",["-R", "755", "bin" ]);
          if (FileSystem.exists("ndll"))
+         {
+            // Work around haxelib bug for now...
+            for(hackDir in ["ndll/Linux","ndll/Linux64"])
+               if (!FileSystem.exists(hackDir))
+                  FileSystem.createDirectory(hackDir);
             command("chmod",["-R", "755", "ndll" ]);
+         }
       }
 
       Sys.setCwd(scratchDir);

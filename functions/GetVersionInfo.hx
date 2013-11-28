@@ -33,6 +33,8 @@ class GetVersionInfo
             info.buildNumber = row.build;
             break;
          }
+         if (row.build>biggest)
+            biggest = row.build;
       }
       if (!info.isReleased)
          info.buildNumber = biggest + 1;
