@@ -156,7 +156,11 @@ class Builder
       binaryVersion = Std.parseInt(data.binaryversion);
       baseVersion = data.version;
 
+      updateVersionInfo();
+   }
 
+   public function  updateVersionInfo()
+   {
       var query = { binaryVersion:binaryVersion, base:baseVersion, git:gitVersion, project:name };
       log(query + "...");
       versionInfo = hurts.Lib.runJson("GetVersionInfo.n", query );
@@ -207,11 +211,10 @@ class Builder
 
       if (writeBinaryVersionFilename!=null)
       {
-         var version = versionInfo.binaryVersion;
          var define = name.toUpperCase() + "_BINARY_VERSION";
          var lines = [
            '#ifndef $define',
-           '#define $define "$version"',
+           '#define $define ' + binaryVersion,
            '#endif'
            ];
         File.saveContent( writeBinaryVersionFilename, lines.join("\n") );
@@ -385,6 +388,8 @@ class Builder
       {
          var ver = binaryVersion;
          log("Check binaries built...");
+         updateVersionInfo();
+
          var have:Array<Dynamic> = versionInfo.have;
          if (have.length < allBinaries.length)
          {

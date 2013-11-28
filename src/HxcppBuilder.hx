@@ -15,7 +15,7 @@ class HxcppBuilder extends Builder
    {
       log("Build :" + inBinary );
 
-      var dir = scratchDir + "/" + getCheckoutDir();
+      var dir = getCheckoutDir();
       Sys.putEnv("HXCPP", dir);
       Sys.setCwd(dir + "/runtime" );
 

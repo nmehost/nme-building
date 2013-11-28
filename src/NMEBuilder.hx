@@ -18,7 +18,7 @@ class NMEBuilder extends Builder
    {
       log("Build :" + inBinary );
 
-      var dir = scratchDir + "/" + getCheckoutDir();
+      var dir = getCheckoutDir();
       Sys.setCwd(dir + "/project" );
 
       if (inBinary=="windows")
