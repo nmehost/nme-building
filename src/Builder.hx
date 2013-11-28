@@ -9,8 +9,6 @@ class Builder
    public var name:String;
    public var url:String;
 
-   public var versionUrl:String;
-   public var svnCmd:String;
    public var gitCmd:String;
    public var revisionMatch:EReg;
    public var commitMatch:EReg;
@@ -24,6 +22,10 @@ class Builder
    public var allBinaries:Array<String>;
    public var scratchDir:String;
    public var cloneDir:String;
+   public var writeVersionFilename:String;
+   public var writeBinaryVersionFilename:String;
+   public var writeHaxeVersionPackage:String;
+   public var changesFile:String;
 
    public function new(inBs:BuildServer,inName:String,inHasBinaries:Bool, inUrl:String)
    {
@@ -82,8 +84,6 @@ class Builder
       if (!FileSystem.exists(cloneDir))
          FileSystem.createDirectory(cloneDir);
       cloneDir += "/" + name;
-      //versionUrl = "https://raw." + url.substr(8) + "/master/haxelib.json";
-      versionUrl = cloneDir + "/haxelib.json";
    }
 
 
@@ -180,6 +180,44 @@ class Builder
       }
    }
 
+   public function writeVersions(?inVersionName:String)
+   {
+      Sys.setCwd(getCheckoutDir());
+      if (writeVersionFilename!=null && inVersionName!=null)
+      {
+         var define = name.toUpperCase() + "_VERSION_NAME";
+         var lines = [
+           '#ifndef $define',
+           '#define $define "$inVersionName"',
+           '#endif'
+           ];
+        File.saveContent( writeVersionFilename, lines.join("\n") );
+      }
+      if (writeHaxeVersionPackage!=null && inVersionName!=null)
+      {
+         var lines = [
+           'package $writeHaxeVersionPackage;',
+           "class Version {",
+           '   public static inline var name="$inVersionName";',
+           "}"
+           ];
+        File.saveContent( writeHaxeVersionPackage.split(".").join("/") + "/Version.hx",
+              lines.join("\n") );
+      }
+
+      if (writeBinaryVersionFilename!=null)
+      {
+         var version = versionInfo.binaryVersion;
+         var define = name.toUpperCase() + "_BINARY_VERSION";
+         var lines = [
+           '#ifndef $define',
+           '#define $define "$inVersionName"',
+           '#endif'
+           ];
+        File.saveContent( writeBinaryVersionFilename, lines.join("\n") );
+      }
+   }
+
 
    public function buildBinary(inBinary:String)
    {
@@ -216,6 +254,7 @@ class Builder
             if (first)
             {
                createWorkingCopy();
+               writeVersions();
                first = false;
             }
 
@@ -286,6 +325,21 @@ class Builder
 
       File.saveContent(jsonFile, lines.join("\n") );
 
+      var newNotes = new Array<String>();
+      if (changesFile!=null)
+      {
+         var notes = new Array<String>();
+         var lines = File.getContent(changesFile).split("\n");
+         for(l in lines)
+            if (l.substr(0,1)=="*")
+               notes.push( l.substr(2) );
+         for(n in versionInfo.noteCount...notes.length)
+            newNotes.push( notes[notes.length-1-n] );
+         log("New notes:\n" + newNotes.join("\n") );
+      }
+
+      writeVersions(newVersion);
+
       log("Getting binaries...");
       for(bin in allBinaries)
       {
@@ -316,24 +370,8 @@ class Builder
       hurts.Lib.sendWebFile(zipName, "releases/" + name + "/" + zipName);
       log("update release db... ");
 
-      hurts.Lib.runJson("UpdateRelease.n", { project:name, base:baseVersion, build:buildNumber, release:newVersion, git:gitVersion } );
+      hurts.Lib.runJson("UpdateRelease.n", { project:name, base:baseVersion, build:buildNumber, release:newVersion, git:gitVersion, notes:newNotes } );
    }
-
-
-
- 
-   public function getSvnRevision(inUrl:String)
-   {     
-
-      log("Check svn version...");
-      var output = readStdout(svnCmd, ["info", inUrl]);
-      var svnRev = 0;
-      for(line in output)
-         if (revisionMatch.match(line))
-            return Std.parseInt(revisionMatch.matched(1));
-      return 0;
-   }
- 
 
    public function checkRelease()
    {

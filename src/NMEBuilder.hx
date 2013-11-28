@@ -8,6 +8,10 @@ class NMEBuilder extends Builder
    {
       super(inBs,"nme",true, "https://github.com/nmehost/nme");
       removeBinaries(["rpi","linux"]);
+      writeVersionFilename = "project/include/NmeVersion.h";
+      writeBinaryVersionFilename = "project/include/NmeBinVersion.h";
+      writeHaxeVersionPackage = "nme";
+      changesFile = "Changes.txt";
    }
 
    override public function buildBinary(inBinary:String)

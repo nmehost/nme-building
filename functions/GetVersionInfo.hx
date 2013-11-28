@@ -37,6 +37,10 @@ class GetVersionInfo
       if (!info.isReleased)
          info.buildNumber = biggest + 1;
 
+      var rset = connect.request("SELECT COUNT(note) FROM bsReleaseNotes where project=" + 
+                 connect.quote(query.project) );
+      info.noteCount = rset.getIntResult(0);
+
       Sys.println( haxe.Json.stringify(info) );
    }
 

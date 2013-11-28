@@ -6,7 +6,9 @@ class HxcppBuilder extends Builder
 {
    public function new(inBs:BuildServer)
    {
-      super(inBs,"hxcpp",true, "https://github.com/HaxeFoundation/hxcpp.git");
+      super(inBs,"hxcpp",true, "https://github.com/HaxeFoundation/hxcpp");
+      writeVersionFilename = "include/HxcppVersion.h";
+      writeBinaryVersionFilename = "include/HxcppBinVersion.h";
    }
 
    override public function buildBinary(inBinary:String)
