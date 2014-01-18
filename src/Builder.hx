@@ -21,6 +21,7 @@ class Builder
    public var binaries:Array<String>;
    public var allBinaries:Array<String>;
    public var scratchDir:String;
+   public var cacheDir:String;
    public var cloneDir:String;
    public var writeVersionFilename:String;
    public var writeBinaryVersionFilename:String;
@@ -51,6 +52,7 @@ class Builder
       }
 
       scratchDir = bs.scratchDir;
+      cacheDir = scratchDir + "/cache";
 
       setGitUrl(inUrl);
    }
@@ -284,10 +286,12 @@ class Builder
          log(result);
       else
          throw result;
+     command("rm", [inFile]);
    }
 
    public function command(cmd:String, args:Array<String>)
    {
+      Sys.println(cmd + " " + args.join(" "));
       if (Sys.command(cmd,args)!=0)
          throw "Error running command: " + cmd + " " + args.join(" ");
    }
@@ -347,10 +351,28 @@ class Builder
       for(bin in allBinaries)
       {
          var file = name + "-bin-" + bin + ".tgz";
-         var url = "http://" + Sys.getEnv("HURTS_HOST") + "/binaries/" + name + "/" + binaryVersion + "/" + file;
-         log("fetching " + url + "...");
-         var data = haxe.Http.requestUrl(url);
-         File.saveBytes( file, haxe.io.Bytes.ofString(data) );
+         // Check cache...
+         var dir = cacheDir;
+         for(sub in ["/binaries", "/"+name, "/"+binaryVersion] )
+         {
+            dir+="/" + sub;
+            if (!FileSystem.exists(dir))
+               FileSystem.createDirectory(dir);
+         }
+
+         var cacheFile = dir + "/" + file;
+         var bytes:haxe.io.Bytes = null;
+         if (FileSystem.exists(cacheFile))
+            bytes = File.getBytes(cacheFile);
+         else
+         {
+            var url = "http://" + Sys.getEnv("HURTS_HOST") + "/binaries/" + name + "/" + binaryVersion + "/" + file;
+            log("fetching " + url + "...");
+            var data = haxe.Http.requestUrl(url);
+            bytes = haxe.io.Bytes.ofString(data);
+            File.saveBytes( cacheFile, bytes );
+         }
+         File.saveBytes( file, bytes );
          command("tar", [ "xvzf", file ]);
          command("rm", [  file ]);
       }
@@ -370,6 +392,7 @@ class Builder
 
       Sys.setCwd(scratchDir);
       var newDir = name + "-" + newVersion;
+      command("rm",["-rf", newDir] );
       command("mv",[dir,newDir] );
       var zipName = name + "-" + newVersion + ".zip";
       command("rm",["-f", zipName] );
@@ -380,6 +403,9 @@ class Builder
       log("update release db... ");
 
       hurts.Lib.runJson("UpdateRelease.n", { project:name, base:baseVersion, build:buildNumber, release:newVersion, git:gitVersion, notes:newNotes } );
+
+     command("rm", ["-f", "sent/" + zipName]);
+     command("mv", [zipName, "sent"]);
    }
 
    public function checkRelease()

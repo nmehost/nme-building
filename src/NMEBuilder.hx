@@ -7,7 +7,7 @@ class NMEBuilder extends Builder
    public function new(inBs:BuildServer)
    {
       super(inBs,"nme",true, "https://github.com/nmehost/nme");
-      removeBinaries(["rpi","linux"]);
+      removeBinaries(["rpi"]);
       writeVersionFilename = "project/include/NmeVersion.h";
       writeBinaryVersionFilename = "project/include/NmeBinVersion.h";
       writeHaxeVersionPackage = "nme";
