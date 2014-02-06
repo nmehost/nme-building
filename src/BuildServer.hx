@@ -49,7 +49,7 @@ class BuildServer
          
 
      
-      var windowsBinaries = [ "windows", "rpi" ];
+      var windowsBinaries = [ "windows" ];
       var linuxBinaries = [ "linux" ];
       var macBinaries = [ "mac", "ios", "linux", "android" ];
 
