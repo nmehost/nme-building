@@ -27,8 +27,8 @@ class UpdateRelease
       }
 
 
-      connect.request("INSERT into bsRelease (project,base,build,git,`release`,notes)" +
-                      ' VALUES ($project,$base,$build,$git,$release,$noteCount)' );
+      connect.request("INSERT into bsRelease (project,base,build,git,`release`,notes,date)" +
+                      ' VALUES ($project,$base,$build,$git,$release,$noteCount,NOW())' );
       return {};
    }
 
