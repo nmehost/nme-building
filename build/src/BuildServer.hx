@@ -15,9 +15,9 @@ class BuildServer
    public function new()
    {
       bsDir = Sys.getCwd();
-      log("Using bu-server " + bsDir);
+      log("Using nme-building " + bsDir);
 
-      hurts.Lib.addFilePath( bsDir + "/functions/bin" );
+      Lib.addFilePath( bsDir + "/build/functions/bin" );
       scratchDir = Sys.getEnv("BS_SCRATCH_DIR");
       if (scratchDir==null || scratchDir=="")
       {
@@ -79,11 +79,11 @@ class BuildServer
 
       var builders:Array<Builder> =
          [
+            new NMEStateBuilder(this),
             new HxcppBuilder(this),
-            new NMEBuilder(this)
-            //new Builder(this,"gm2d",false, "http://gm2d.googlecode.com/svn/"),
-            //new Builder(this,"hurts",false, "http://hurts.googlecode.com/svn/"),
-            //new Builder(this,"bs-buildserver",false, "http://bs-buildserver.googlecode.com/svn/")
+            new NMEBuilder(this),
+            new WaxeWorksBuilder(this)
+            //new WaxeBuilder(this)
          ];
 
       while(true)

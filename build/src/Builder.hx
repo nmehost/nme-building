@@ -165,7 +165,7 @@ class Builder
    {
       var query = { binaryVersion:binaryVersion, base:baseVersion, git:gitVersion, project:name };
       log(query + "...");
-      versionInfo = hurts.Lib.runJson("GetVersionInfo.n", query );
+      versionInfo = Lib.runJson("GetVersionInfo.n", query );
       log(versionInfo);
    }
 
@@ -191,7 +191,7 @@ class Builder
       Sys.setCwd(getCheckoutDir());
       if (writeVersionFilename!=null && inVersionName!=null)
       {
-         var define = name.toUpperCase() + "_VERSION_NAME";
+         var define = name.split("-").join("_").toUpperCase() + "_VERSION_NAME";
          var lines = [
            '#ifndef $define',
            '#define $define "$inVersionName"',
@@ -274,14 +274,14 @@ class Builder
 
    public function updateBinary(inPlatform:String)
    {
-      var result = hurts.Lib.runJson("UpdateBinary.n",
+      var result = Lib.runJson("UpdateBinary.n",
          { project:name, version:binaryVersion, platform:inPlatform } );
    }
 
    public function sendBinary(inFile:String)
    {
       log("Sending " + inFile + "...");
-      var result = hurts.Lib.sendWebFile(inFile, "binaries/" + name + "/" + binaryVersion + "/" + inFile );
+      var result = Lib.sendWebFile(inFile, "binaries/" + name + "/" + binaryVersion + "/" + inFile );
       if (result.substr(0,5)=="Wrote")
          log(result);
       else
@@ -399,10 +399,10 @@ class Builder
       command("zip",["-r", zipName, newDir] );
       command("mv",[newDir,dir] );
       log("sending " + zipName + "...");
-      hurts.Lib.sendWebFile(zipName, "releases/" + name + "/" + zipName);
+      Lib.sendWebFile(zipName, "releases/" + name + "/" + zipName);
       log("update release db... ");
 
-      hurts.Lib.runJson("UpdateRelease.n", { project:name, base:baseVersion, build:buildNumber, release:newVersion, git:gitVersion, notes:newNotes } );
+      Lib.runJson("UpdateRelease.n", { project:name, base:baseVersion, build:buildNumber, release:newVersion, git:gitVersion, notes:newNotes } );
 
      command("rm", ["-f", "sent/" + zipName]);
      command("mv", [zipName, "sent"]);
@@ -439,7 +439,7 @@ class Builder
       var query:Dynamic = {};
       query.project = name;
       query.binaryVersion = inVersion;
-      return hurts.Lib.runJson("QueryBinaries.n", query );
+      return Lib.runJson("QueryBinaries.n", query );
    }
 
 }
