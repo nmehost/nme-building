@@ -3,6 +3,7 @@ import sys.FileSystem;
 class BuildServer
 {
    public var scratchDir:String;
+   public var binDir:String;
    public var isWindows:Bool;
    public var isMac:Bool;
    public var isLinux:Bool;
@@ -28,9 +29,13 @@ class BuildServer
          }
       }
       if (!FileSystem.exists(scratchDir))
-        throw "Could not find scratchDir '" + scratchDir + "'";
+        throw "Could not find binDir '" + scratchDir + "'";
 
       log("Using scratchDir " + scratchDir);
+
+      binDir = Sys.getEnv("BS_BIN_DIR");
+      if (binDir==null || binDir=="" || !FileSystem.exists(binDir))
+        throw "Shared binary directory BS_BIN_DIR not found scratchDir '" + scratchDir + "'";
  
       var projects = new Array<String>();
       var args = Sys.args();
@@ -46,9 +51,7 @@ class BuildServer
          else
            idx++;
       }
-         
 
-     
       var windowsBinaries = [ "windows" ];
       var linuxBinaries = [ "linux" ];
       var macBinaries = [ "mac", "ios", "linux", "android" ];

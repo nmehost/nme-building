@@ -21,7 +21,7 @@ class Builder
    public var binaries:Array<String>;
    public var allBinaries:Array<String>;
    public var scratchDir:String;
-   public var cacheDir:String;
+   public var binDir:String;
    public var cloneDir:String;
    public var writeVersionFilename:String;
    public var writeBinaryVersionFilename:String;
@@ -52,7 +52,24 @@ class Builder
       }
 
       scratchDir = bs.scratchDir;
-      cacheDir = scratchDir + "/cache";
+
+      if (inHasBinaries)
+      {
+         binDir = bs.binDir + "/" + inName;
+         if (!FileSystem.exists(binDir))
+         {
+            try
+            {
+               FileSystem.createDirectory(binDir);
+               FileSystem.createDirectory(binDir+"/releases");
+            }
+            catch(e:Dynamic)
+            {
+               Sys.println("Could not open binDir " + binDir + " " + e); 
+               throw("Unable to create " + inName);
+            }
+         }
+      }
 
       setGitUrl(inUrl);
    }
@@ -281,12 +298,35 @@ class Builder
    public function sendBinary(inFile:String)
    {
       log("Sending " + inFile + "...");
+      var dir = binDir + "/" + binaryVersion;
+
+      for(test in 0...2)
+      {
+         if (!FileSystem.exists(dir))
+         {
+            try { FileSystem.createDirectory(dir); }
+            catch(e:Dynamic) { }
+         }
+      }
+      if (!FileSystem.exists(dir))
+         throw "Could not create binary target :" + dir;
+
+      var dest = dir + "/" + inFile;
+      if (FileSystem.exists(dest))
+         command("rm", [dest]);
+
+      command("cp", ["-rp", inFile, dest] );
+      command("rm", [inFile]);
+      log("Created " + dest);
+
+      /*
       var result = Lib.sendWebFile(inFile, "binaries/" + name + "/" + binaryVersion + "/" + inFile );
       if (result.substr(0,5)=="Wrote")
          log(result);
       else
          throw result;
      command("rm", [inFile]);
+     */
    }
 
    public function command(cmd:String, args:Array<String>)
@@ -351,31 +391,19 @@ class Builder
       for(bin in allBinaries)
       {
          var file = name + "-bin-" + bin + ".tgz";
-         // Check cache...
-         var dir = cacheDir;
-         for(sub in ["/binaries", "/"+name, "/"+binaryVersion] )
-         {
-            dir+="/" + sub;
-            if (!FileSystem.exists(dir))
-               FileSystem.createDirectory(dir);
-         }
+         var dir = binDir + "/" + binaryVersion;
 
-         var cacheFile = dir + "/" + file;
+         var binFile = dir + "/" + file;
          var bytes:haxe.io.Bytes = null;
-         if (FileSystem.exists(cacheFile))
-            bytes = File.getBytes(cacheFile);
+         if (FileSystem.exists(binFile))
+            bytes = File.getBytes(binFile);
          else
-         {
-            var url = "http://" + Sys.getEnv("HURTS_HOST") + "/binaries/" + name + "/" + binaryVersion + "/" + file;
-            log("fetching " + url + "...");
-            var data = haxe.Http.requestUrl(url);
-            bytes = haxe.io.Bytes.ofString(data);
-            File.saveBytes( cacheFile, bytes );
-         }
+            throw "Missing binary " + binFile;
          File.saveBytes( file, bytes );
          command("tar", [ "xvzf", file ]);
          command("rm", [  file ]);
       }
+
       if (allBinaries.length>0)
       {
          if (FileSystem.exists("bin"))
@@ -397,15 +425,14 @@ class Builder
       var zipName = name + "-" + newVersion + ".zip";
       command("rm",["-f", zipName] );
       command("zip",["-r", zipName, newDir] );
-      command("mv",[newDir,dir] );
+      command("rm",["-f", newDir] );
+
       log("sending " + zipName + "...");
       Lib.sendWebFile(zipName, "releases/" + name + "/" + zipName);
+      command("mv",[zipName, binDir+"/releases/" + zipName] );
       log("update release db... ");
 
       Lib.runJson("UpdateRelease.n", { project:name, base:baseVersion, build:buildNumber, release:newVersion, git:gitVersion, notes:newNotes } );
-
-     command("rm", ["-f", "sent/" + zipName]);
-     command("mv", [zipName, "sent"]);
    }
 
    public function checkRelease()
