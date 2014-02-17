@@ -1,11 +1,12 @@
 import sys.io.File;
+import sys.FileSystem;
 import haxe.io.Bytes;
 
 class Lib
 {
    public static var filePath = ["."];
 
-   public static function sendData(inAction:String, inData:Bytes, inParams:String) : String
+   public static function sendData(inAction:String, inFunction:String, inParams:String) : String
    {
       var passwd = Sys.getEnv("HURTS_PASSWORD");
       if (passwd==null)
@@ -28,12 +29,11 @@ class Lib
       post.onError = function(s) throw(s);
       //post.onStatus = function(i) trace("status  " +i );
 
-      var postData = neko.zip.Compress.run(inData,9);
       post.setParameter( "action", inAction ); 
-      post.setParameter( "data", postData.toString() ); 
+      post.setParameter( "data", inFunction ); 
       post.setParameter( "nonce", nonce ); 
       post.setParameter( "params", inParams ); 
-      post.setParameter( "md5", haxe.crypto.Md5.encode(inAction+inParams+postData+nonce+passwd) ); 
+      post.setParameter( "md5", haxe.crypto.Md5.encode(inAction+inParams+inFunction+nonce+passwd) ); 
       post.request(true);
       return data;
    }
@@ -79,7 +79,7 @@ class Lib
    public static function runJson(inModuleName:String, inQuery:Dynamic) : Dynamic
    {
       var json = haxe.Json.stringify(inQuery);
-      var result = sendData("run", getBytes(inModuleName), json );
+      var result = sendData("run", inModuleName, json );
       if (result.substr(0,5)=="Error")
          throw result;
       return haxe.Json.parse(result);
@@ -87,7 +87,7 @@ class Lib
 
    public static function runNeko(inModuleName:String, ?inArg:String) : String
    {
-      return sendData("run", getBytes(inModuleName), inArg==null ? "" : inArg );
+      return sendData("run", inModuleName, inArg==null ? "" : inArg );
    }
 
    public static function sendFile(inSource:String, inDest:String) : String
@@ -97,34 +97,45 @@ class Lib
       {
          var result = Sys.command("scp",[ inSource, scp+":"+inDest ]);
          if (result!=0)
-            throw "Error running scp";
+            throw "Error running scp " + inSource + " to " + inDest;
          return "Wrote " + inDest;
       }
       else
       {
-         var result = sendData("put", getBytes(inSource), inDest );
-         if (result.substr(0,5)!="Wrote")
-           throw "Error sending file " + result;
-         return result;
+         throw "scp not initialized";
       }
    }
-
    public static function sendWebFile(inSource:String, inDest:String) : String
+   {
+      return sendFile(inSource, "www/"+inDest);
+   }
+
+   public static function initServer(inBase:String)
    {
       var scp = Sys.getEnv("HURTS_SCP_URL");
       if (scp!=null && scp!="")
       {
-         var result = Sys.command("scp",[ inSource, scp+":www/"+inDest ]);
+         var src = inBase + "/run.php";
+         var dest = "www/hurts/run.php";
+         Sys.println('scp $src -> $dest');
+         var result = Sys.command("scp",[ src, scp+":"+dest ]);
          if (result!=0)
-            throw "Error running scp";
-         return "Wrote www/" + inDest;
-      }
-      else
-      {
-         var result = sendData("wput", getBytes(inSource), inDest );
-         if (result.substr(0,5)!="Wrote")
-           throw "Error sending file " + result;
-         return result;
+            throw "Error sending " + src;
+
+         var funcDir = inBase + "/bin";
+         var files = FileSystem.readDirectory(funcDir);
+         for(file in files)
+         {
+            if (file.substr(file.length-2)==".n")
+            {
+               var src = funcDir + "/" + file;
+               var dest = "hurts/scripts/" + file;
+               Sys.println('scp $src -> $dest');
+               var result = Sys.command("scp",[ src, scp+":"+dest ]);
+               if (result!=0)
+                throw "Error sending " + file;
+            }
+         }
       }
    }
 

@@ -53,21 +53,19 @@ class Builder
 
       scratchDir = bs.scratchDir;
 
-      if (inHasBinaries)
+      binDir = bs.binDir + "/" + inName;
+      if (!FileSystem.exists(binDir + "/releases"))
       {
-         binDir = bs.binDir + "/" + inName;
-         if (!FileSystem.exists(binDir))
+         try
          {
-            try
-            {
+            if (!FileSystem.exists(binDir))
                FileSystem.createDirectory(binDir);
-               FileSystem.createDirectory(binDir+"/releases");
-            }
-            catch(e:Dynamic)
-            {
-               Sys.println("Could not open binDir " + binDir + " " + e); 
-               throw("Unable to create " + inName);
-            }
+             FileSystem.createDirectory(binDir+"/releases");
+         }
+         catch(e:Dynamic)
+         {
+            Sys.println("Could not open binDir " + binDir + " " + e); 
+            throw("Unable to create " + inName);
          }
       }
 
@@ -425,11 +423,13 @@ class Builder
       var zipName = name + "-" + newVersion + ".zip";
       command("rm",["-f", zipName] );
       command("zip",["-r", zipName, newDir] );
-      command("rm",["-f", newDir] );
+      command("rm",["-rf", newDir] );
 
-      log("sending " + zipName + "...");
-      Lib.sendWebFile(zipName, "releases/" + name + "/" + zipName);
+      var release = binDir + "/releases/"+zipName;
+      command("rm",["-f", release] );
       command("mv",[zipName, binDir+"/releases/" + zipName] );
+      log("sending " + release + "...");
+      Lib.sendWebFile(release, "releases/" + name + "/" + zipName);
       log("update release db... ");
 
       Lib.runJson("UpdateRelease.n", { project:name, base:baseVersion, build:buildNumber, release:newVersion, git:gitVersion, notes:newNotes } );

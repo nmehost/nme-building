@@ -18,7 +18,7 @@ class BuildServer
       bsDir = Sys.getCwd();
       log("Using nme-building " + bsDir);
 
-      Lib.addFilePath( bsDir + "/build/functions/bin" );
+
       scratchDir = Sys.getEnv("BS_SCRATCH_DIR");
       if (scratchDir==null || scratchDir=="")
       {
@@ -40,6 +40,7 @@ class BuildServer
       var projects = new Array<String>();
       var args = Sys.args();
       var idx = 0;
+      var init = false;
       while(idx<args.length-1)
       {
          if (args[idx]=="-p")
@@ -49,8 +50,15 @@ class BuildServer
             idx++;
          }
          else
+         {
+           if (args[idx]=="-init")
+              init = true;
            idx++;
+         }
       }
+
+      if (init)
+         Lib.initServer( bsDir + "/build/functions" );
 
       var windowsBinaries = [ "windows" ];
       var linuxBinaries = [ "linux" ];
