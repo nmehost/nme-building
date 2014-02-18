@@ -28,6 +28,8 @@ class Builder
    public var writeHaxeVersionPackage:String;
    public var changesFile:String;
 
+   public var lastGoodGitVersion:String;
+
    public function new(inBs:BuildServer,inName:String,inHasBinaries:Bool, inUrl:String)
    {
       revisionMatch = ~/^Revision: (\S+)/;
@@ -134,14 +136,19 @@ class Builder
    {
       var result = new Array<String>();
       var proc = new sys.io.Process(inCommand,inArgs);
-      try
+      var stdout = proc.stdout;
+      if (stdout!=null)
       {
-         while(true)
+         try
          {
-            var out = proc.stdout.readLine();
-            result.push(out);
-         }
-      } catch(e:Dynamic){}
+            while(true)
+            {
+               var out = stdout.readLine();
+               result.push(out);
+            }
+         } catch(e:Dynamic){}
+         stdout.close();
+      }
       proc.close();
       return result;
    }
@@ -167,6 +174,9 @@ class Builder
       if (lines.length>0 && commitMatch.match(lines[0]))
          gitVersion = commitMatch.matched(1);
 
+      if (gitVersion==lastGoodGitVersion)
+         return true;
+
       var jsonFile = "haxelib.json";
       var data = haxe.Json.parse(File.getContent(jsonFile));
 
@@ -174,6 +184,7 @@ class Builder
       baseVersion = data.version;
 
       updateVersionInfo();
+      return false;
    }
 
    public function  updateVersionInfo()
@@ -206,7 +217,7 @@ class Builder
       Sys.setCwd(getCheckoutDir());
       if (writeVersionFilename!=null && inVersionName!=null)
       {
-         var define = name.split("-").join("_").toUpperCase() + "_VERSION_NAME";
+         var define = name.split("-").join("_").toUpperCase() + "_VERSION";
          var lines = [
            '#ifndef $define',
            '#define $define "$inVersionName"',
@@ -251,13 +262,20 @@ class Builder
 
    public function build()
    {
-      updateClone();
+      if (updateClone())
+      {
+         log("Already built " + gitVersion );
+      }
+      else
+      {
+         if (hasBinaries())
+            buildBinaries();
 
-      if (hasBinaries())
-         buildBinaries();
+         if (bs.shouldCreateRelease())
+            checkRelease();
 
-      if (bs.shouldCreateRelease())
-         checkRelease();
+         lastGoodGitVersion = gitVersion;
+      }
    }
 
    public function buildBinaries()

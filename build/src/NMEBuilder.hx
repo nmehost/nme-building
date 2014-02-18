@@ -11,7 +11,7 @@ class NMEBuilder extends Builder
       writeVersionFilename = "project/include/NmeVersion.h";
       writeBinaryVersionFilename = "project/include/NmeBinVersion.h";
       writeHaxeVersionPackage = "nme";
-      changesFile = "Changes.txt";
+      changesFile = "Changes.md";
    }
 
    override public function buildBinary(inBinary:String)

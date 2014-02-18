@@ -93,8 +93,8 @@ class BuildServer
             new NMEStateBuilder(this),
             new HxcppBuilder(this),
             new NMEBuilder(this),
-            new WaxeWorksBuilder(this)
-            //new WaxeBuilder(this)
+            new WaxeWorksBuilder(this),
+            new WaxeBuilder(this)
          ];
 
       while(true)
