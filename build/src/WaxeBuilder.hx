@@ -8,7 +8,7 @@ class WaxeBuilder extends BinaryBuilder
    {
       super(inBs,"waxe", "https://github.com/nmehost/waxe");
       filterBinaries(["mac","windows","linux"]);
-      writeBinaryVersionFilename = "project/waxe/WaxeBinVersion.h";
+      writeBinaryVersionFilename = "project/src/WaxeBinVersion.h";
       writeHaxeVersionPackage = "waxe";
       changesFile = "Changes.md";
       useLatestProjects(["waxe-works"]);
