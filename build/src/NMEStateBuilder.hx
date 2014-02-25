@@ -6,7 +6,7 @@ class NMEStateBuilder extends BinaryBuilder
 {
    public function new(inBs:BuildServer)
    {
-      super(inBs,"nme-state", "https://github.com/nmehost/nme-state");
+      super(inBs,"nme-state", "https://github.com/nmehost/nme-state",true,false);
       writeVersionFilename = "include/NmeStateVersion.h";
       changesFile = "Changes.txt";
    }

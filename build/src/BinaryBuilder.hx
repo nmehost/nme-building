@@ -4,10 +4,15 @@ import sys.FileSystem;
 
 class BinaryBuilder extends Builder
 {
-   public function new(inBs:BuildServer, name:String, url:String)
+   public var hasStatic:Bool;
+   public var hasNdll:Bool;
+
+   public function new(inBs:BuildServer, name:String, url:String,inHasStatic:Bool=true, inHasNdll:Bool=true)
    {
       super(inBs,name,true,url);
       useLatestProjects(["hxcpp"]);
+      hasStatic = inHasStatic;
+      hasNdll = inHasNdll;
    }
 
    override public function buildBinary(inBinary:String)
@@ -23,13 +28,23 @@ class BinaryBuilder extends Builder
       {
          command("neko", ["build.n", inBinary ]);
          Sys.setCwd(dir);
-         command("tar", ["cvzf", name + "-bin-windows.tgz", "ndll/Windows", "lib/Windows"]);
+         var args = ["cvzf", name + "-bin-windows.tgz"];
+         if (hasNdll)
+            args.push("lib/Windows");
+         if (hasStatic)
+            args.push("ndll/Windows");
+         command("tar", args);
       }
       else if (inBinary=="mac")
       {
          command("neko", ["build.n", inBinary ]);
          Sys.setCwd(dir);
-         command("tar", ["cvzf", name + "-bin-mac.tgz", "ndll/Mac", "ndll/Mac64", "lib/Mac", "lib/Mac64"]);
+         var args = ["cvzf", name + "-bin-mac.tgz"];
+         if (hasNdll)
+            args = args.concat(["ndll/Mac", "ndll/Mac64"]);
+         if (hasStatic)
+            args = args.concat(["lib/Mac", "lib/Mac64"]);
+         command("tar", args);
       }
       else if (inBinary=="ios")
       {
@@ -41,13 +56,23 @@ class BinaryBuilder extends Builder
       {
          command("neko", ["build.n", inBinary ]);
          Sys.setCwd(dir);
-         command("tar", ["cvzf", name + "-bin-android.tgz", "ndll/Android", "lib/Android"]);
+         var args = ["cvzf", name + "-bin-android.tgz"];
+         if (hasNdll)
+            args.push("lib/Android");
+         if (hasStatic)
+            args.push("ndll/Android");
+         command("tar", args);
       }
       else if (inBinary=="linux")
       {
          command("neko", ["build.n", inBinary ]);
          Sys.setCwd(dir);
-         command("tar", ["cvzf", name + "-bin-linux.tgz", "ndll/Linux", "ndll/Linux64", "lib/Linux", "lib/Linux64" ]);
+         var args = ["cvzf", name + "-bin-linux.tgz"];
+         if (hasNdll)
+            args = args.concat(["ndll/Linux", "ndll/Linux64"]);
+         if (hasStatic)
+            args = args.concat(["lib/Linux", "lib/Linux64"]);
+         command("tar",args);
       }
       else if (inBinary=="rpi")
       {
