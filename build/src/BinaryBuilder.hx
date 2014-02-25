@@ -29,9 +29,9 @@ class BinaryBuilder extends Builder
          command("neko", ["build.n", inBinary ]);
          Sys.setCwd(dir);
          var args = ["cvzf", name + "-bin-windows.tgz"];
-         if (hasNdll)
-            args.push("lib/Windows");
          if (hasStatic)
+            args.push("lib/Windows");
+         if (hasNdll)
             args.push("ndll/Windows");
          command("tar", args);
       }
@@ -57,9 +57,9 @@ class BinaryBuilder extends Builder
          command("neko", ["build.n", inBinary ]);
          Sys.setCwd(dir);
          var args = ["cvzf", name + "-bin-android.tgz"];
-         if (hasNdll)
-            args.push("lib/Android");
          if (hasStatic)
+            args.push("lib/Android");
+         if (hasNdll)
             args.push("ndll/Android");
          command("tar", args);
       }
