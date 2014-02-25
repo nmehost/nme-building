@@ -28,7 +28,13 @@ class Builder
    public var writeHaxeVersionPackage:String;
    public var changesFile:String;
 
+   public var depends:Array<Builder>;
+
+
    public var lastGoodGitVersion:String;
+   public var haxelibUpdated:Bool;
+   public var lastGoodHaxelib:String;
+   public var lastGood:Bool;
 
    public function new(inBs:BuildServer,inName:String,inHasBinaries:Bool, inUrl:String)
    {
@@ -38,6 +44,9 @@ class Builder
       name = inName;
       binaryVersion = 0;
       gitVersion = "";
+      depends = [];
+      haxelibUpdated = false;
+      lastGood = false;
 
       gitCmd = Sys.getEnv("BS_GIT");
       if (gitCmd==null || gitCmd=="")
@@ -72,6 +81,30 @@ class Builder
       }
 
       setGitUrl(inUrl);
+   }
+
+   function useLatestProjects(inDepends:Array<String>)
+   {
+      for( depend in inDepends)
+         depends.push( bs.findDepend(depend) );
+   }
+
+   function filterBinaries(keep:Array<String>)
+   {
+      var filtered = new Array<String>();
+      for(b in allBinaries)
+         if (Lambda.exists(keep,function(x) return x==b))
+            filtered.push(b);
+      allBinaries = filtered;
+      trace("->filtered all " + allBinaries );
+
+      var filtered = new Array<String>();
+      for(b in binaries)
+         if (Lambda.exists(keep,function(x) return x==b))
+            filtered.push(b);
+      binaries = filtered;
+      trace("->filtered " + binaries );
+
    }
 
    function removeBinaries(remove:Array<String>)
@@ -487,6 +520,40 @@ class Builder
       return Lib.runJson("QueryBinaries.n", query );
    }
 
+   public function updateHaxelib()
+   {
+      if (versionInfo==null)
+         throw "Unknown version for project " + name;
+      if (!versionInfo.isReleased)
+         throw "Project " + name + " is not ready.";
+
+      var parts = baseVersion.split(".");
+      if (parts.length!=3)
+         throw "Could not parse version " + baseVersion + " in project " + name;
+      parts[2] = versionInfo.buildNumber + "";
+      var haxelib = parts.join(".");
+
+      if (lastGoodHaxelib!=haxelib)
+      {
+         var commas = parts.join(",");
+         if (!FileSystem.exists(bs.haxelibConfig + "/" + name + "/" + commas))
+         {
+            var release = binDir + "/releases/"+name + "-" + haxelib + ".zip";
+
+            command("haxelib", ["local", release ] );
+         }
+         if (!FileSystem.exists(bs.haxelibConfig + "/" + name + "/" + commas))
+            throw "Failed to install " + name + " version " + haxelib;
+
+         command("haxelib", ["set", name, haxelib ] );
+         // Disable development
+         command("haxelib", ["dev", name] );
+
+
+         log("haxelib " + name + " set to " + haxelib);
+         lastGoodHaxelib = haxelib;
+      }
+   }
 }
 
 

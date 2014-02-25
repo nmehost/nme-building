@@ -10,6 +10,9 @@ class BuildServer
 
    public var binaries:Array<String>;
    public var allBinaries:Array<String>;
+   public var builders:Array<Builder>;
+
+   public var haxelibConfig:String;
 
    public var bsDir:String;
 
@@ -64,6 +67,10 @@ class BuildServer
       var linuxBinaries = [ "linux" ];
       var macBinaries = [ "mac", "ios", "linux", "android" ];
 
+      var lines = Builder.readStdout("haxelib",["config"]);
+      if (lines.length!=1)
+         throw "Could not setup haxelib (" + lines + ")";
+      haxelibConfig = lines[0];
 
       var os = Sys.systemName();
       isWindows = (new EReg("window","i")).match(os);
@@ -88,14 +95,12 @@ class BuildServer
             allBinaries.push(b);
 
 
-      var builders:Array<Builder> =
-         [
-            new NMEStateBuilder(this),
-            new HxcppBuilder(this),
-            new NMEBuilder(this),
-            new WaxeWorksBuilder(this),
-            new WaxeBuilder(this)
-         ];
+      builders = [];
+      builders.push(new HxcppBuilder(this));
+      builders.push(new NMEStateBuilder(this));
+      builders.push(new NMEBuilder(this));
+      builders.push(new WaxeWorksBuilder(this));
+      builders.push(new WaxeBuilder(this));
 
       while(true)
       {
@@ -125,6 +130,14 @@ class BuildServer
          log("zzz...");
          Sys.sleep(60);
       }
+   }
+
+   public function findDepend(inDepend:String) : Builder
+   {
+      for(builder in builders)
+         if (builder.name==inDepend)
+            return builder;
+      throw "Could not find dependant project "+ inDepend; 
    }
 
    public function shouldCreateRelease()

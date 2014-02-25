@@ -17,9 +17,9 @@ class HxcppBuilder extends Builder
 
       var dir = getCheckoutDir();
       Sys.putEnv("HXCPP", dir);
-      Sys.setCwd(dir + "/runtime" );
+      Sys.setCwd(dir + "/project" );
 
-      command("neko", ["buildlibs.n", inBinary]);
+      command("neko", ["build.n", inBinary]);
       Sys.setCwd(dir);
       var bin = "";
       var bin64 = "";
