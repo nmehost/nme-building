@@ -8,7 +8,7 @@ class NMEStateBuilder extends BinaryBuilder
    {
       super(inBs,"nme-state", "https://github.com/nmehost/nme-state",true,false);
       writeVersionFilename = "include/NmeStateVersion.h";
-      changesFile = "Changes.txt";
+      changesFile = "Changes.md";
    }
 }
 
