@@ -208,7 +208,11 @@ class Builder
          gitVersion = commitMatch.matched(1);
 
       if (gitVersion==lastGoodGitVersion)
-         return true;
+      {
+         if (versionInfo==null || !versionInfo.isReleased)
+            updateVersionInfo();
+         return versionInfo.isReleased;
+      }
 
       var jsonFile = "haxelib.json";
       var data = haxe.Json.parse(File.getContent(jsonFile));
@@ -297,7 +301,7 @@ class Builder
    {
       if (updateClone())
       {
-         log("Already built " + gitVersion );
+         log("Already built + released " + gitVersion );
       }
       else
       {
