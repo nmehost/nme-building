@@ -484,6 +484,7 @@ class Builder
       log("update release db... ");
 
       Lib.runJson("UpdateRelease.n", { project:name, base:baseVersion, build:buildNumber, release:newVersion, git:gitVersion, notes:newNotes } );
+      versionInfo.isReleased = true;
    }
 
    public function checkRelease()
