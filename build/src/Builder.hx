@@ -252,6 +252,15 @@ class Builder
    public function writeVersions(?inVersionName:String)
    {
       Sys.setCwd(getCheckoutDir());
+
+      var lines = [
+         "<html>","<body>","<h1>",
+         "<a href='" + url + "/tree/" + gitVersion + "'>Source Code</a>",
+         "</h1>","</body>","</html>",
+      ];
+      File.saveContent( "release.html", lines.join("\n") );
+
+
       if (writeVersionFilename!=null && inVersionName!=null)
       {
          var define = name.split("-").join("_").toUpperCase() + "_VERSION";

@@ -9,6 +9,7 @@ class HxcppBuilder extends Builder
       super(inBs,"hxcpp",true, "https://github.com/HaxeFoundation/hxcpp");
       writeVersionFilename = "include/HxcppVersion.h";
       writeBinaryVersionFilename = "include/HxcppBinVersion.h";
+      changesFile = "Changes.md";
    }
 
    override public function buildBinary(inBinary:String)
