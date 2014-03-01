@@ -22,6 +22,9 @@ class BinaryBuilder extends Builder
          depend.updateHaxelib();
 
       var dir = getCheckoutDir();
+      Sys.setCwd(dir + "/tools/build" );
+      command("haxe", ["compile.hxml"]);
+
       Sys.setCwd(dir + "/project" );
 
       if (inBinary=="windows")
