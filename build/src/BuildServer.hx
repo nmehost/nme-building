@@ -65,7 +65,7 @@ class BuildServer
 
       var windowsBinaries = [ "windows" ];
       var linuxBinaries = [ "linux" ];
-      var macBinaries = [ "mac", "ios", "linux", "android" ];
+      var macBinaries = [ "mac", "ios", "linux", "android", "tizen" ];
 
       var lines = Builder.readStdout("haxelib",["config"]);
       if (lines.length!=1)

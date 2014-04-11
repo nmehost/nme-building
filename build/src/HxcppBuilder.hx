@@ -51,6 +51,10 @@ class HxcppBuilder extends Builder
       {
          bin="RPi";
       }
+      else if (inBinary=="tizen")
+      {
+         bin="Tizen";
+      }
       else
       {
          throw "Unknown binary " + inBinary;
