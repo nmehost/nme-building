@@ -55,6 +55,10 @@ class HxcppBuilder extends Builder
       {
          bin="Tizen";
       }
+      else if (inBinary=="blackberry")
+      {
+         bin="BlackBerry";
+      }
       else
       {
          throw "Unknown binary " + inBinary;
