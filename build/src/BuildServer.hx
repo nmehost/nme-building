@@ -123,6 +123,7 @@ class BuildServer
             }
             catch(e:Dynamic)
             {
+               trace(haxe.CallStack.exceptionStack());
                log("Error building " + builder.name + ":" + e );
             }
             log(" ------------");
