@@ -2,12 +2,12 @@ import haxe.Http;
 import sys.io.File;
 import sys.FileSystem;
 
-class NMEStateBuilder extends BinaryBuilder
+class NMEDevBuilder extends BinaryBuilder
 {
    public function new(inBs:BuildServer)
    {
-      super(inBs,"nme-state", "https://github.com/nmehost/nme-state",true,false);
-      writeVersionFilename = "include/NmeStateVersion.h";
+      super(inBs,"nme-dev", "https://github.com/haxenme/nme-dev",true,false);
+      writeVersionFilename = "include/NmeDevVersion.h";
       changesFile = "Changes.md";
    }
 }

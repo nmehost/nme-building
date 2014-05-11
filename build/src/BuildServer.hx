@@ -97,10 +97,12 @@ class BuildServer
 
       builders = [];
       builders.push(new HxcppBuilder(this));
-      builders.push(new NMEStateBuilder(this));
+      builders.push(new NMEDevBuilder(this));
       builders.push(new NMEBuilder(this));
       builders.push(new WaxeWorksBuilder(this));
       builders.push(new WaxeBuilder(this));
+      builders.push(new Gm2dBuilder(this));
+      builders.push(new HxcppDebuggerBuilder(this));
 
       while(true)
       {
