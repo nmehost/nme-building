@@ -92,7 +92,7 @@ class BinaryBuilder extends Builder
       {
          command("neko", ["build.n", inBinary ]);
          Sys.setCwd(dir);
-         var args = ["cvzf", name + "-bin-tizen.tgz"];
+         var args = ["cvzf", name + "-bin-blackberry.tgz"];
          if (hasNdll)
             args = args.concat(["ndll/BlackBerry"]);
          if (hasStatic)
