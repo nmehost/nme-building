@@ -7,7 +7,7 @@ class NMEBuilder extends BinaryBuilder
    public function new(inBs:BuildServer)
    {
       super(inBs,"nme", "https://github.com/haxenme/nme");
-      removeBinaries(["rpi"]);
+      removeBinaries(["rpi","tizen","blackberry"]);
       writeVersionFilename = "project/include/NmeVersion.h";
       writeBinaryVersionFilename = "project/include/NmeBinVersion.h";
       writeHaxeVersionPackage = "nme";
