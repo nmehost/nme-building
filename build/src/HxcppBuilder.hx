@@ -25,7 +25,7 @@ class HxcppBuilder extends Builder
       var bin = "";
       var bin64 = "";
 
-      if (inBinary=="windows")
+      if (inBinary=="windows" || inBinary=="mingw" || inBinary=="static-mingw")
       {
          bin = "Windows";
       }

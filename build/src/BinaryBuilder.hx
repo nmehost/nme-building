@@ -27,14 +27,14 @@ class BinaryBuilder extends Builder
 
       Sys.setCwd(dir + "/project" );
 
-      if (inBinary=="windows")
+      if (inBinary=="windows" || inBinary=="mingw" || inBinary=="static-mingw")
       {
          command("neko", ["build.n", inBinary ]);
          Sys.setCwd(dir);
          var args = ["cvzf", name + "-bin-windows.tgz"];
          if (hasStatic)
             args.push("lib/Windows");
-         if (hasNdll)
+         if (hasNdll && inBinary!="static-mingw")
             args.push("ndll/Windows");
          command("tar", args);
       }

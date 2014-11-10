@@ -63,7 +63,7 @@ class BuildServer
       if (init)
          Lib.initServer( bsDir + "/build/functions" );
 
-      var windowsBinaries = [ "windows" ];
+      var windowsBinaries = [ "windows", "static-mingw" ];
       var linuxBinaries = [ "linux" ];
       var macBinaries = [ "mac", "ios", "linux", "android", "tizen", "blackberry" ];
 
