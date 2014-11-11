@@ -20,19 +20,16 @@ class HxcppBuilder extends Builder
       Sys.putEnv("HXCPP", dir);
       Sys.setCwd(dir + "/project" );
 
-      command("neko", ["build.n", inBinary]);
-      Sys.setCwd(dir);
       var bin = "";
       var bin64 = "";
       var binName = inBinary;
-      var staticOnly = false;
+      var staticOnly = inBinary=="mingw";
+      var buildName = staticOnly ? "static-" + inBinary : inBinary;
 
-      if (inBinary=="static-mingw")
-      {
-         binName = "mingw";
-         bin = "Windows";
-      }
-      else if (inBinary=="windows" || inBinary=="mingw")
+      command("neko", ["build.n", buildName]);
+      Sys.setCwd(dir);
+
+      if (inBinary=="windows" || inBinary=="mingw")
       {
          bin = "Windows";
       }
