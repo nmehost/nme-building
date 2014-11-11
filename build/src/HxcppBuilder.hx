@@ -24,8 +24,15 @@ class HxcppBuilder extends Builder
       Sys.setCwd(dir);
       var bin = "";
       var bin64 = "";
+      var binName = inBinary;
+      var staticOnly = false;
 
-      if (inBinary=="windows" || inBinary=="mingw" || inBinary=="static-mingw")
+      if (inBinary=="static-mingw")
+      {
+         binName = "mingw";
+         bin = "Windows";
+      }
+      else if (inBinary=="windows" || inBinary=="mingw")
       {
          bin = "Windows";
       }
@@ -64,7 +71,10 @@ class HxcppBuilder extends Builder
          throw "Unknown binary " + inBinary;
       }
 
-      var args = ["cvzf", "hxcpp-bin-" + inBinary + ".tgz", "bin/"+bin, "lib/"+bin];
+      var args = ["cvzf", "hxcpp-bin-" + binName + ".tgz", "lib/"+bin];
+      if (!staticOnly)
+         args.push("bin/"+bin);
+
       if (bin64!="")
       {
          args.push("bin/" + bin64);
@@ -72,7 +82,7 @@ class HxcppBuilder extends Builder
       }
       command("tar", args );
 
-      sendBinary("hxcpp-bin-" + inBinary +".tgz");
+      sendBinary("hxcpp-bin-" + binName +".tgz");
       updateBinary(inBinary);
    }
 }
