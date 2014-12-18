@@ -10,11 +10,16 @@ class HxcppBuilder extends Builder
       writeVersionFilename = "include/HxcppVersion.h";
       writeBinaryVersionFilename = "include/HxcppBinVersion.h";
       changesFile = "Changes.md";
+   }
+
+   override public function createWorkingCopy()
+   {
+      super.createWorkingCopy();
+      log("Build hxcpp.n...");
       var dir = getCheckoutDir();
       Sys.setCwd(dir + "/tools/hxcpp" );
       command("haxe", ["compile.hxml"]);
    }
-
    override public function buildBinary(inBinary:String)
    {
       log("Build :" + inBinary );
