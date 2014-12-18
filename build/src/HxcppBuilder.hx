@@ -18,6 +18,8 @@ class HxcppBuilder extends Builder
 
       var dir = getCheckoutDir();
       Sys.putEnv("HXCPP", dir);
+      Sys.setCwd(dir + "/tools/hxcpp" );
+      command("haxe", ["compile.hxml"]);
       Sys.setCwd(dir + "/project" );
 
       var bin = "";
