@@ -36,7 +36,7 @@ class BinaryBuilder extends Builder
       {
          command("neko", ["build.n", inBinary ]);
          Sys.setCwd(dir);
-         var args = ["cvzf", name + "-bin-windows.tgz"];
+         var args = ["cvzf", name + (inBinary=="windows" ? "-bin-windows.tgz" : "-bin-mingw.tgz" )];
          if (hasStatic)
             args.push("lib/Windows");
          if (hasNdll && inBinary!="static-mingw")
