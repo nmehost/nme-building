@@ -15,6 +15,8 @@ class BinaryBuilder extends Builder
       hasNdll = inHasNdll;
    }
 
+   public function hasMingw() { return true; }
+
    override public function buildBinary(inBinary:String)
    {
       log("Build :" + inBinary );
@@ -32,14 +34,16 @@ class BinaryBuilder extends Builder
 
       Sys.setCwd(dir + "/project" );
 
-      if (inBinary=="windows" || inBinary=="mingw" || inBinary=="static-mingw")
+      if (inBinary=="windows" )
       {
-         command("neko", ["build.n", inBinary ]);
+         command("neko", ["build.n", "windows" ]);
+         if (hasMingw() && hasStatic)
+            command("neko", ["build.n", "static-mingw" ]);
          Sys.setCwd(dir);
-         var args = ["cvzf", name + (inBinary=="windows" ? "-bin-windows.tgz" : "-bin-mingw.tgz" )];
+         var args = ["cvzf", name + "-bin-windows.tgz"];
          if (hasStatic)
             args.push("lib/Windows");
-         if (hasNdll && inBinary!="static-mingw")
+         if (hasNdll)
             args.push("ndll/Windows");
          command("tar", args);
       }
