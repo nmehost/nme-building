@@ -33,13 +33,13 @@ class HxcppBuilder extends Builder
       var bin = "";
       var bin64 = "";
       var binName = inBinary;
-      var staticOnly = inBinary=="mingw";
-      var buildName = staticOnly ? "static-" + inBinary : inBinary;
 
-      command("neko", ["build.n", buildName]);
+      command("neko", ["build.n", inBinary]);
+      if (inBinary=="windows")
+         command("neko", ["build.n", "static-mingw"]);
       Sys.setCwd(dir);
 
-      if (inBinary=="windows" || inBinary=="mingw")
+      if (inBinary=="windows")
       {
          bin = "Windows";
       }
@@ -79,8 +79,7 @@ class HxcppBuilder extends Builder
       }
 
       var args = ["cvzf", "hxcpp-bin-" + binName + ".tgz", "lib/"+bin];
-      if (!staticOnly)
-         args.push("bin/"+bin);
+      args.push("bin/"+bin);
 
       if (bin64!="")
       {
