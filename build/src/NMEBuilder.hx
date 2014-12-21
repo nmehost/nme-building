@@ -14,6 +14,16 @@ class NMEBuilder extends BinaryBuilder
       changesFile = "Changes.md";
       useLatestProjects(["nme-dev"]);
    }
+
+   override public function createWorkingCopy()
+   {
+      super.createWorkingCopy();
+      log("Build nme.n...");
+      var dir = getCheckoutDir();
+      Sys.setCwd(dir + "/tools/nme" );
+      command("haxe", ["compile.hxml"]);
+   }
+
 }
 
 
