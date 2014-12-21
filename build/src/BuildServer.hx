@@ -11,6 +11,7 @@ class BuildServer
    public var binaries:Array<String>;
    public var allBinaries:Array<String>;
    public var builders:Array<Builder>;
+   public var releases:Map<String,Release>;
 
    public var haxelibConfig:String;
 
@@ -20,6 +21,7 @@ class BuildServer
    {
       bsDir = Sys.getCwd();
       log("Using nme-building " + bsDir);
+      releases = new Map<String,Release>();
 
 
       scratchDir = Sys.getEnv("BS_SCRATCH_DIR");
@@ -106,6 +108,7 @@ class BuildServer
 
       while(true)
       {
+         getReleases();
          for(builder in builders)
          {
             if (projects.length>0)
@@ -133,6 +136,24 @@ class BuildServer
          log("zzz...");
          Sys.sleep(60);
       }
+   }
+
+   public function getReleases()
+   {
+      var host = Sys.getEnv("HURTS_HOST");
+      if (host==null)
+         throw("Please set HURTS_HOST for your site.");
+
+      var data = haxe.Http.requestUrl("http://" + host + "/api/versions.php");
+      var obj = haxe.Json.parse(data);
+      var fields = Reflect.fields(obj);
+      for(f in fields)
+      {
+         var value = Reflect.field(obj,f);
+         log(f + "=>" + value);
+         releases.set(f, new Release(value) );
+      }
+
    }
 
    public function findDepend(inDepend:String) : Builder

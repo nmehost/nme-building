@@ -16,6 +16,7 @@ class Builder
    public var binaryVersion:Int=0;
    public var baseVersion:String="";
    public var gitVersion:String;
+   public var cloneVersion:String;
    public var versionInfo:Dynamic=null;
 
    public var binaries:Array<String>;
@@ -186,26 +187,29 @@ class Builder
       return result;
    }
 
-   public function updateClone()
+   public function updateClone(inVersion:String)
    {
-      if (FileSystem.exists(cloneDir))
+      if (inVersion!=gitVersion)
       {
-         log("update...");
+         if (FileSystem.exists(cloneDir))
+         {
+            log("update...");
+            Sys.setCwd(cloneDir);
+            command(gitCmd,["pull"] );
+         }
+         else
+         {
+            log("clone...");
+            Sys.setCwd(scratchDir + "/clones");
+            log("cloning git clone " +  url + ".git");
+            command(gitCmd,["clone", url + ".git"] );
+         }
          Sys.setCwd(cloneDir);
-         command(gitCmd,["pull"] );
+         var lines = readStdout(gitCmd,["log", "-n", "1" ] );
+         gitVersion = "";
+         if (lines.length>0 && commitMatch.match(lines[0]))
+            gitVersion = commitMatch.matched(1);
       }
-      else
-      {
-         log("clone...");
-         Sys.setCwd(scratchDir + "/clones");
-         log("cloning git clone " +  url + ".git");
-         command(gitCmd,["clone", url + ".git"] );
-      }
-      Sys.setCwd(cloneDir);
-      var lines = readStdout(gitCmd,["log", "-n", "1" ] );
-      gitVersion = "";
-      if (lines.length>0 && commitMatch.match(lines[0]))
-         gitVersion = commitMatch.matched(1);
 
       if (gitVersion==lastGoodGitVersion)
       {
@@ -308,7 +312,16 @@ class Builder
 
    public function build()
    {
-      if (updateClone())
+      var release = bs.releases.get(name);
+      if (release==null)
+      {
+         log("Could not get information about " + name);
+      }
+      else if (release.isReleased)
+      {
+         log("Already released " + gitVersion );
+      }
+      else if (updateClone(release.git))
       {
          log("Already built + released " + gitVersion );
       }
