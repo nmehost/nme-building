@@ -82,6 +82,8 @@ class Builder
       }
 
       setGitUrl(inUrl);
+
+      log(name + " binaries:" + binaries);
    }
 
    function useLatestProjects(inDepends:Array<String>)
@@ -97,14 +99,14 @@ class Builder
          if (Lambda.exists(keep,function(x) return x==b))
             filtered.push(b);
       allBinaries = filtered;
-      trace("->filtered all " + allBinaries );
+      //trace("->filtered all " + allBinaries );
 
       var filtered = new Array<String>();
       for(b in binaries)
          if (Lambda.exists(keep,function(x) return x==b))
             filtered.push(b);
       binaries = filtered;
-      trace("->filtered " + binaries );
+      //trace("->filtered " + binaries );
 
    }
 
@@ -115,14 +117,14 @@ class Builder
          if (!Lambda.exists(remove,function(x) return x==b))
             filtered.push(b);
       allBinaries = filtered;
-      trace("->filtered all " + allBinaries );
+      trace(name + " ->filtered all " + allBinaries );
 
       var filtered = new Array<String>();
       for(b in binaries)
          if (!Lambda.exists(remove,function(x) return x==b))
             filtered.push(b);
       binaries = filtered;
-      trace("->filtered " + binaries );
+      trace(name + " ->filtered " + binaries );
    }
 
    public function getCheckoutDir()
@@ -313,7 +315,12 @@ class Builder
    public function build()
    {
       var release = bs.releases.get(name);
-      if (release==null)
+
+      if (!hasBinaries() && !bs.shouldCreateRelease())
+      {
+         log("no binaries - skip");
+      }
+      else if (release==null)
       {
          log("Could not get information about " + name);
       }
