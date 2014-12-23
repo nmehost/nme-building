@@ -549,16 +549,21 @@ class Builder
 
    public function updateHaxelib()
    {
-      if (versionInfo==null)
-         throw "Unknown version for project " + name;
-      if (!versionInfo.isReleased)
-         throw "Project " + name + " is not ready.";
-
-      var parts = baseVersion.split(".");
+      var release = bs.releases.get(name);
+      if (release==null)
+      {
+         throw("Could not get information about " + name);
+      }
+      else if (!release.isReleased)
+      {
+         throw("Not released " + gitVersion );
+      }
+ 
+      var parts = release.version.split(".");
       if (parts.length!=3)
-         throw "Could not parse version " + baseVersion + " in project " + name;
-      parts[2] = versionInfo.buildNumber + "";
+         throw "Could not parse version " + release.version + " in project " + name;
       var haxelib = parts.join(".");
+      log("Check " + name + " for version " + haxelib + "...");
 
       if (lastGoodHaxelib!=haxelib)
       {
@@ -580,6 +585,8 @@ class Builder
          log("haxelib " + name + " set to " + haxelib);
          lastGoodHaxelib = haxelib;
       }
+      else 
+         log("... already good");
    }
 }
 

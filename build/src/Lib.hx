@@ -95,9 +95,9 @@ class Lib
       var scp = Sys.getEnv("HURTS_SCP_URL");
       if (scp!=null && scp!="")
       {
-         var result = Sys.command("scp",[ inSource, scp+":"+inDest ]);
+         var result = Sys.command("rsync",[ inSource, scp+":"+inDest, "-v" ]);
          if (result!=0)
-            throw "Error running scp " + inSource + " to " + inDest;
+            throw "Error running rsync " + inSource + " to " + inDest;
          return "Wrote " + inDest;
       }
       else
