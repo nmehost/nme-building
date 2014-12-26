@@ -108,29 +108,39 @@ class BuildServer
 
       while(true)
       {
-         getReleases();
-         for(builder in builders)
+         var ok = false;
+         try
          {
-            if (projects.length>0)
-            {
-               if (!Lambda.exists(projects, function(x) return x==builder.name) )
-               {
-                  log("skip " + builder.name);
-                  continue;
-               }
-            }
-            log(" --- " + builder.name + " ---");
-            try
-            {
-               builder.build();
-            }
-            catch(e:Dynamic)
-            {
-               trace(haxe.CallStack.exceptionStack());
-               log("Error building " + builder.name + ":" + e );
-            }
-            log(" ------------");
+            getReleases();
+            ok = true;
          }
+         catch(e:Dynamic)
+         {
+            log("Error getting releases :" + e);
+         }
+         if (ok)
+            for(builder in builders)
+            {
+               if (projects.length>0)
+               {
+                  if (!Lambda.exists(projects, function(x) return x==builder.name) )
+                  {
+                     log("skip " + builder.name);
+                     continue;
+                  }
+               }
+               log(" --- " + builder.name + " ---");
+               try
+               {
+                  builder.build();
+               }
+               catch(e:Dynamic)
+               {
+                  trace(haxe.CallStack.exceptionStack());
+                  log("Error building " + builder.name + ":" + e );
+               }
+               log(" ------------");
+            }
          if (projects.length>0)
             break;
          log("zzz...");
