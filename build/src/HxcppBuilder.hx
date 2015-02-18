@@ -42,6 +42,7 @@ class HxcppBuilder extends Builder
       if (inBinary=="windows")
       {
          bin = "Windows";
+         bin64 = "Windows64";
       }
       else if (inBinary=="mac")
       {
