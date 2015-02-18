@@ -144,7 +144,7 @@ class BuildServer
          if (projects.length>0)
             break;
          log("zzz...");
-         Sys.sleep(60);
+         Sys.sleep(360);
       }
    }
 
