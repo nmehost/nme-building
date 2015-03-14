@@ -37,6 +37,9 @@ class HxcppBuilder extends Builder
       command("neko", ["build.n", inBinary]);
       if (inBinary=="windows")
          command("neko", ["build.n", "static-mingw"]);
+      if (inBinary=="windows" || inBinary=="mac" || inBinary=="linux")
+         command("haxe", ["compile-cppia.hxml"]);
+
       Sys.setCwd(dir);
 
       if (inBinary=="windows")
