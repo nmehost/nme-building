@@ -105,6 +105,7 @@ class BuildServer
       builders.push(new WaxeBuilder(this));
       builders.push(new Gm2dBuilder(this));
       builders.push(new HxcppDebuggerBuilder(this));
+      builders.push(new AcadnmeBuilder(this));
 
       while(true)
       {
