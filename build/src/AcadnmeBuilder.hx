@@ -58,16 +58,19 @@ class AcadnmeBuilder extends Builder
 
          command("haxelib", ["run", "nme", "cpp", "build" ]);
          Sys.setCwd(dir);
-         command("tar", ["cvzf", "acadnme-bin-mac.tgz", "bin/Mac", "export" ]);
+         command("tar", ["cvzf", "acadnme-bin-mac.tgz", "bin/Mac", "export", "bin/apps" ]);
       }
       else if (inBinary=="ios")
       {
       }
       else if (inBinary=="android")
       {
+         Sys.setCwd(dir);
+         command("mkdir", ["-p", "engine/temp" ]);
+         sys.io.File.saveContent("engine/temp/.build", "1400");
+         Sys.setCwd(dir+"/engine");
          command("haxelib", ["run", "nme", "android", "build" ]);
          Sys.setCwd(dir);
-         sys.io.File.saveContent("engine/temp/.build", "1400");
          command("mkdir", ["-p", "bin/Android" ]);
          command("cp", ["engine/temp/android/Acadnme/bin/Acadnme-release.apk", "bin/Android" ]);
          command("tar", ["cvzf", "acadnme-bin-android.tgz", "bin/Android" ]);
