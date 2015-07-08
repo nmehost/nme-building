@@ -8,9 +8,9 @@ class AcadnmeBuilder extends Builder
    public function new(inBs:BuildServer)
    {
       super(inBs,"acadnme",true,"https://github.com/nmehost/acadnme");
-      filterBinaries(["mac","windows", "android"]);
+      filterBinaries(["mac","windows", "android", "linux"]);
       changesFile = "Changes.md";
-      useLatestProjects(["hxcpp"]);
+      useLatestProjects(["hxcpp","nme"]);
    }
 
    override public function createWorkingCopy()
@@ -55,10 +55,15 @@ class AcadnmeBuilder extends Builder
       }
       else if (inBinary=="mac")
       {
-
          command("haxelib", ["run", "nme", "cpp", "build" ]);
          Sys.setCwd(dir);
          command("tar", ["cvzf", "acadnme-bin-mac.tgz", "bin/Mac", "export", "bin/apps" ]);
+      }
+      else if (inBinary=="linux")
+      {
+         command("haxelib", ["run", "nme", "cpp", "build", "-Dlinux", "-DHXCPP_M64" ]);
+         Sys.setCwd(dir);
+         command("tar", ["cvzf", "acadnme-bin-linux.tgz", "bin/Linux64" ]);
       }
       else if (inBinary=="ios")
       {
@@ -67,7 +72,8 @@ class AcadnmeBuilder extends Builder
       {
          Sys.setCwd(dir);
          command("mkdir", ["-p", "engine/temp" ]);
-         sys.io.File.saveContent("engine/temp/.build", "1400");
+// TODO - add binary version!
+         sys.io.File.saveContent("engine/temp/.build", "1402");
          Sys.setCwd(dir+"/engine");
          command("haxelib", ["run", "nme", "android", "build" ]);
          Sys.setCwd(dir);

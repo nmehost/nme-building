@@ -220,8 +220,11 @@ class Builder
          return versionInfo.isReleased;
       }
 
+      Sys.setCwd(cloneDir);
       var jsonFile = "haxelib.json";
-      var data = haxe.Json.parse(File.getContent(jsonFile));
+      var content = File.getContent(jsonFile);
+      var data:Dynamic = haxe.Json.parse(File.getContent(jsonFile));
+      trace("Parsed " + data);
 
       binaryVersion = Std.parseInt(data.binaryversion);
       baseVersion = data.version;
