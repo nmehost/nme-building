@@ -61,7 +61,7 @@ class AcadnmeBuilder extends Builder
       }
       else if (inBinary=="linux")
       {
-         command("haxelib", ["run", "nme", "cpp", "build", "-Dlinux", "-DHXCPP_M64" ]);
+         command("haxelib", ["run", "nme", "linux", "build", "-DHXCPP_M64" ]);
          Sys.setCwd(dir);
          command("tar", ["cvzf", "acadnme-bin-linux.tgz", "bin/Linux64" ]);
       }
@@ -73,7 +73,7 @@ class AcadnmeBuilder extends Builder
          Sys.setCwd(dir);
          command("mkdir", ["-p", "engine/temp" ]);
 // TODO - add binary version!
-         sys.io.File.saveContent("engine/temp/.build", "1402");
+         sys.io.File.saveContent("engine/temp/.build", "1403");
          Sys.setCwd(dir+"/engine");
          command("haxelib", ["run", "nme", "android", "build" ]);
          Sys.setCwd(dir);
