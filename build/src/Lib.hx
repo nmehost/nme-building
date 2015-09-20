@@ -4,6 +4,7 @@ import haxe.io.Bytes;
 
 class Lib
 {
+   public static var partsDir = "";
    public static var filePath = ["."];
 
    public static function sendData(inAction:String, inFunction:String, inParams:String) : String
@@ -95,9 +96,9 @@ class Lib
       var scp = Sys.getEnv("HURTS_SCP_URL");
       if (scp!=null && scp!="")
       {
-         var result = Sys.command("rsync",[ inSource, scp+":"+inDest, "-v" ]);
+         var result = Sys.command("scp",[ inSource, scp+":"+inDest ]);
          if (result!=0)
-            throw "Error running rsync " + inSource + " to " + inDest;
+            throw "Error running scp " + inSource + " to " + inDest;
          return "Wrote " + inDest;
       }
       else
@@ -105,9 +106,37 @@ class Lib
          throw "scp not initialized";
       }
    }
+
    public static function sendWebFile(inSource:String, inDest:String) : String
    {
-      return sendFile(inSource, "www/"+inDest);
+      var size = 1024*1024;
+
+      var bytes = File.getBytes(inSource);
+      if (partsDir=="" || bytes.length<=size)
+      {
+         return sendFile(inSource, "www/"+inDest);
+      }
+      else
+      {
+         var chunks = Std.int( (bytes.length+size-1)/size );
+         var prefix = inDest.split("/").pop();
+         var dest = "hurts/parts/";
+         var sent = 0;
+         var remaining = bytes.length;
+         for(c in 0...chunks)
+         {
+            var partName = prefix + "-" + c;
+            var src = partsDir + "/" + partName;
+            var send = remaining < size ? remaining : size;
+            File.saveBytes( src, bytes.sub(sent, send) );
+            sendFile(src,dest + partName);
+            remaining -= send;
+            sent += send;
+         }
+         runJson("JoinFiles.n", { src:dest+prefix, count:chunks, dest:inDest, lenght:bytes.length } );
+
+         return "ok";
+      }
    }
 
    public static function initServer(inBase:String)

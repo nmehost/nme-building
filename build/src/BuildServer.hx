@@ -36,6 +36,12 @@ class BuildServer
       if (!FileSystem.exists(scratchDir))
         throw "Could not find binDir '" + scratchDir + "'";
 
+      var partsDir = scratchDir+"/parts";
+      if (!FileSystem.exists(partsDir))
+         FileSystem.createDirectory(partsDir);
+      if (FileSystem.exists(partsDir))
+         Lib.partsDir = partsDir;
+
       log("Using scratchDir " + scratchDir);
 
       binDir = Sys.getEnv("BS_BIN_DIR");

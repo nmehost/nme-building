@@ -32,3 +32,9 @@
 -neko bin/GetVersionInfo.n
 -dce full
 -lib hurts
+
+--next
+-main JoinFiles
+-neko bin/JoinFiles.n
+-dce full
+-lib hurts
