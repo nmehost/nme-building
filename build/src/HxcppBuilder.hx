@@ -34,9 +34,14 @@ class HxcppBuilder extends Builder
       var bin64 = "";
       var binName = inBinary;
 
-      command("neko", ["build.n", inBinary]);
       if (inBinary=="windows")
+      {
+         command("neko", ["build.n", "msvc"]);
          command("neko", ["build.n", "static-mingw"]);
+      }
+      else
+         command("neko", ["build.n", inBinary]);
+
       if (inBinary=="windows" || inBinary=="mac" || inBinary=="linux")
       {
          command("haxelib", ["dev", "hxcpp", dir ]);
