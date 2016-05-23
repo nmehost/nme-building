@@ -492,7 +492,10 @@ class Builder
       if (allBinaries.length>0)
       {
          if (FileSystem.exists("bin"))
+         {
             command("chmod",["-R", "755", "bin" ]);
+            command("find",["bin", "-name", "*.hash", "-exec", "rm", "{}", ";" ]);
+         }
          if (FileSystem.exists("ndll"))
          {
             // Work around haxelib bug for now...
@@ -500,7 +503,10 @@ class Builder
                if (!FileSystem.exists(hackDir))
                   FileSystem.createDirectory(hackDir);
             command("chmod",["-R", "755", "ndll" ]);
+            command("find",["ndll", "-name", "*.hash", "-exec", "rm", "{}", ";" ]);
          }
+         if (FileSystem.exists("lib"))
+            command("find",["lib", "-name", "*.hash", "-exec", "rm", "{}", ";" ]);
       }
 
       Sys.setCwd(scratchDir);
@@ -566,7 +572,7 @@ class Builder
       }
       else if (!release.isReleased)
       {
-         throw("Not released " + gitVersion );
+         throw("Not released " + name + "(" + gitVersion  +") " + bs.releases );
       }
  
       var parts = release.version.split(".");

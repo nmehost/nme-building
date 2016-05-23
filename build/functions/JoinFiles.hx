@@ -12,15 +12,24 @@ class JoinFiles
 
       var pos = 0;
 
-      var buffer = haxe.io.Bytes.alloc(length);
-      for(c in 0...count)
+      try
       {
-         var chunk = sys.io.File.getBytes(src+"-"+c);
-         buffer.blit(pos, chunk, 0, chunk.length);
-         pos += chunk.length;
-      }
+         var buffer = haxe.io.Bytes.alloc(length);
+         for(c in 0...count)
+         {
+            var chunk = sys.io.File.getBytes(src+"-"+c);
+            buffer.blit(pos, chunk, 0, chunk.length);
+            pos += chunk.length;
+         }
+   
+         sys.io.File.saveBytes(dest, buffer);
 
-      sys.io.File.saveBytes(dest, buffer);
+         Sys.println( haxe.Json.stringify( { ok:true, wrote:buffer.length } ) );
+      }
+      catch(e:Dynamic)
+      {
+         Sys.println("Error : " + e);
+      }
    }
 }
 

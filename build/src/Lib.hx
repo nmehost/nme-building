@@ -83,6 +83,7 @@ class Lib
       var result = sendData("run", inModuleName, json );
       if (result.substr(0,5)=="Error")
          throw result;
+      trace("Result:" + result);
       return haxe.Json.parse(result);
    }
 
@@ -133,7 +134,9 @@ class Lib
             remaining -= send;
             sent += send;
          }
-         runJson("JoinFiles.n", { src:dest+prefix, count:chunks, dest:inDest, lenght:bytes.length } );
+         var command = { src:"parts/"+prefix, count:chunks, dest:"../www/"+inDest, length:sent };
+         trace(command);
+         runJson("JoinFiles.n", command );
 
          return "ok";
       }

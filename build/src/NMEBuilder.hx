@@ -15,6 +15,13 @@ class NMEBuilder extends BinaryBuilder
       useLatestProjects(["nme-dev"]);
    }
 
+   override public function getBuildExtra(bin)
+   {
+      if (bin!="android")
+         return null;
+      return [ ["android-armv5"], ["android-armv7"] ];
+   }
+
    override public function createWorkingCopy()
    {
       super.createWorkingCopy();

@@ -17,6 +17,20 @@ class BinaryBuilder extends Builder
 
    public function hasMingw() { return true; }
 
+   public function getBuildExtra(inBinary:String) : Array<Array<String>>
+   {
+      return null;
+   }
+   public function buildArchs(inBinary:String)
+   {
+      var buildExtra = getBuildExtra(inBinary);
+      if (buildExtra==null)
+         command("neko", ["build.n", inBinary ]);
+      else
+         for(extra in buildExtra)
+            command("neko", ["build.n" ].concat(extra) );
+   }
+
    override public function buildBinary(inBinary:String)
    {
       log("Build :" + inBinary );
@@ -36,7 +50,7 @@ class BinaryBuilder extends Builder
 
       if (inBinary=="windows" )
       {
-         command("neko", ["build.n", "windows" ]);
+         buildArchs(inBinary);
          if (hasMingw() && hasStatic)
             command("neko", ["build.n", "static-mingw" ]);
          Sys.setCwd(dir);
@@ -49,7 +63,7 @@ class BinaryBuilder extends Builder
       }
       else if (inBinary=="mac")
       {
-         command("neko", ["build.n", inBinary ]);
+         buildArchs(inBinary);
          Sys.setCwd(dir);
          var args = ["cvzf", name + "-bin-mac.tgz"];
          if (hasNdll)
@@ -60,13 +74,13 @@ class BinaryBuilder extends Builder
       }
       else if (inBinary=="ios")
       {
-         command("neko", ["build.n", inBinary ]);
+         buildArchs(inBinary);
          Sys.setCwd(dir);
          command("tar", ["cvzf", name + "-bin-ios.tgz", "lib/IPhone"]);
       }
       else if (inBinary=="android")
       {
-         command("neko", ["build.n", inBinary ]);
+         buildArchs(inBinary);
          Sys.setCwd(dir);
          var args = ["cvzf", name + "-bin-android.tgz"];
          if (hasStatic)
@@ -77,7 +91,7 @@ class BinaryBuilder extends Builder
       }
       else if (inBinary=="linux")
       {
-         command("neko", ["build.n", inBinary ]);
+         buildArchs(inBinary);
          Sys.setCwd(dir);
          var args = ["cvzf", name + "-bin-linux.tgz"];
          if (hasNdll)
@@ -88,7 +102,7 @@ class BinaryBuilder extends Builder
       }
       else if (inBinary=="tizen")
       {
-         command("neko", ["build.n", inBinary ]);
+         buildArchs(inBinary);
          Sys.setCwd(dir);
          var args = ["cvzf", name + "-bin-tizen.tgz"];
          if (hasNdll)
@@ -99,7 +113,7 @@ class BinaryBuilder extends Builder
       }
       else if (inBinary=="blackberry")
       {
-         command("neko", ["build.n", inBinary ]);
+         buildArchs(inBinary);
          Sys.setCwd(dir);
          var args = ["cvzf", name + "-bin-blackberry.tgz"];
          if (hasNdll)
@@ -110,7 +124,7 @@ class BinaryBuilder extends Builder
       }
       else if (inBinary=="rpi")
       {
-         command("neko", ["build.n", inBinary ]);
+         buildArchs(inBinary);
          Sys.setCwd(dir);
          command("tar", ["cvzf", name + "-bin-rpi.tgz", "ndll/RPi"]);
       }

@@ -113,7 +113,7 @@ class BuildServer
       builders.push(new HxcppDebuggerBuilder(this));
       builders.push(new AcadnmeBuilder(this));
 
-      while(true)
+      for(count in 0...100)
       {
          var ok = false;
          try
@@ -155,13 +155,23 @@ class BuildServer
       }
    }
 
+   static var firstRelease = true;
    public function getReleases()
    {
       var host = Sys.getEnv("HURTS_HOST");
       if (host==null)
          throw("Please set HURTS_HOST for your site.");
 
-      var data = haxe.Http.requestUrl("http://" + host + "/api/versions.php");
+      var extra = "";
+      if (firstRelease && isMac)
+      {
+         var projs = [];
+         for(b in builders)
+            projs.push(b.name);
+         extra = "?" + projs.join("&");
+      }
+
+      var data = haxe.Http.requestUrl("http://" + host + "/api/versions.php" + extra);
       var obj = haxe.Json.parse(data);
       var fields = Reflect.fields(obj);
       for(f in fields)

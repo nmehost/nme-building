@@ -10,7 +10,7 @@ class AcadnmeBuilder extends Builder
       super(inBs,"acadnme",true,"https://github.com/nmehost/acadnme");
       filterBinaries(["mac","windows", "android", "linux"]);
       changesFile = "Changes.md";
-      useLatestProjects(["hxcpp","nme"]);
+      useLatestProjects(["hxcpp","nme","gm2d"]);
    }
 
    override public function createWorkingCopy()
@@ -63,7 +63,7 @@ class AcadnmeBuilder extends Builder
       {
          command("haxelib", ["run", "nme", "linux", "build", "-DHXCPP_M64" ]);
          Sys.setCwd(dir);
-         command("tar", ["cvzf", "acadnme-bin-linux.tgz", "bin/Linux64" ]);
+         command("tar", ["cvzf", "acadnme-bin-linux.tgz", "bin/Linux" ]);
       }
       else if (inBinary=="ios")
       {
@@ -73,7 +73,7 @@ class AcadnmeBuilder extends Builder
          Sys.setCwd(dir);
          command("mkdir", ["-p", "engine/temp" ]);
 // TODO - add binary version!
-         sys.io.File.saveContent("engine/temp/.build", "1403");
+         sys.io.File.saveContent("engine/temp/.build", "1405");
          Sys.setCwd(dir+"/engine");
          command("haxelib", ["run", "nme", "android", "build" ]);
          Sys.setCwd(dir);
@@ -92,6 +92,7 @@ class AcadnmeBuilder extends Builder
          throw "Unknown binary " + inBinary;
       }
 
+      command("find",["bin","-name","*.hash","-exec","rm","{}",";"] );
       sendBinary("acadnme-bin-" + inBinary +".tgz");
       updateBinary(inBinary);
    }
