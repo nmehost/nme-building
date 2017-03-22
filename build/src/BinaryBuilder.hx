@@ -100,28 +100,6 @@ class BinaryBuilder extends Builder
             args = args.concat(["lib/Linux", "lib/Linux64"]);
          command("tar",args);
       }
-      else if (inBinary=="tizen")
-      {
-         buildArchs(inBinary);
-         Sys.setCwd(dir);
-         var args = ["cvzf", name + "-bin-tizen.tgz"];
-         if (hasNdll)
-            args = args.concat(["ndll/Tizen"]);
-         if (hasStatic)
-            args = args.concat(["lib/Tizen"]);
-         command("tar",args);
-      }
-      else if (inBinary=="blackberry")
-      {
-         buildArchs(inBinary);
-         Sys.setCwd(dir);
-         var args = ["cvzf", name + "-bin-blackberry.tgz"];
-         if (hasNdll)
-            args = args.concat(["ndll/BlackBerry"]);
-         if (hasStatic)
-            args = args.concat(["lib/BlackBerry"]);
-         command("tar",args);
-      }
       else if (inBinary=="rpi")
       {
          buildArchs(inBinary);
