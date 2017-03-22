@@ -16,7 +16,6 @@ class NMEBuilder extends BinaryBuilder
    }
 
 
-
    override public function createWorkingCopy()
    {
       super.createWorkingCopy();

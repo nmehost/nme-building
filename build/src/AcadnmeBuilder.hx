@@ -92,7 +92,8 @@ class AcadnmeBuilder extends Builder
          throw "Unknown binary " + inBinary;
       }
 
-      command("find",["bin","-name","*.hash","-exec","rm","{}",";"] );
+      if (bs.isMac)
+         command("find",["bin","-name","*.hash","-exec","rm","{}",";"] );
       sendBinary("acadnme-bin-" + inBinary +".tgz");
       updateBinary(inBinary);
    }

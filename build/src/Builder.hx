@@ -494,7 +494,8 @@ class Builder
          if (FileSystem.exists("bin"))
          {
             command("chmod",["-R", "755", "bin" ]);
-            command("find",["bin", "-name", "*.hash", "-exec", "rm", "{}", ";" ]);
+            if (bs.isMac)
+               command("find",["bin", "-name", "*.hash", "-exec", "rm", "{}", ";" ]);
          }
          if (FileSystem.exists("ndll"))
          {
@@ -503,10 +504,12 @@ class Builder
                if (!FileSystem.exists(hackDir))
                   FileSystem.createDirectory(hackDir);
             command("chmod",["-R", "755", "ndll" ]);
-            command("find",["ndll", "-name", "*.hash", "-exec", "rm", "{}", ";" ]);
+            if (bs.isMac)
+               command("find",["ndll", "-name", "*.hash", "-exec", "rm", "{}", ";" ]);
          }
          if (FileSystem.exists("lib"))
-            command("find",["lib", "-name", "*.hash", "-exec", "rm", "{}", ";" ]);
+            if (bs.isMac)
+               command("find",["lib", "-name", "*.hash", "-exec", "rm", "{}", ";" ]);
       }
 
       Sys.setCwd(scratchDir);

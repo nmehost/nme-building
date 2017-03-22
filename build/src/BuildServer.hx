@@ -113,7 +113,8 @@ class BuildServer
       builders.push(new HxcppDebuggerBuilder(this));
       builders.push(new AcadnmeBuilder(this));
 
-      for(count in 0...100)
+      var goes = isMac ? 100 : 1000000000;
+      for(count in 0...goes)
       {
          var ok = false;
          try
