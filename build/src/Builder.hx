@@ -27,6 +27,7 @@ class Builder
    public var writeVersionFilename:String;
    public var writeBinaryVersionFilename:String;
    public var writeHaxeVersionPackage:String;
+   public var writeHaxeVersionPackageRoot:String = "";
    public var changesFile:String;
 
    public var depends:Array<Builder>;
@@ -288,7 +289,7 @@ class Builder
            '   public static inline var name="$inVersionName";',
            "}"
            ];
-        File.saveContent( writeHaxeVersionPackage.split(".").join("/") + "/Version.hx",
+        File.saveContent( writeHaxeVersionPackageRoot + writeHaxeVersionPackage.split(".").join("/") + "/Version.hx",
               lines.join("\n") );
       }
 

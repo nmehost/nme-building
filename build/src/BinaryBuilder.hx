@@ -31,6 +31,11 @@ class BinaryBuilder extends Builder
             command("neko", ["build.n" ].concat(extra) );
    }
 
+   public function buildMacExtra(args:Array<String>):Array<String>
+   {
+      return args;
+   }
+
    override public function buildBinary(inBinary:String)
    {
       log("Build :" + inBinary );
@@ -70,6 +75,7 @@ class BinaryBuilder extends Builder
             args = args.concat(["ndll/Mac", "ndll/Mac64"]);
          if (hasStatic)
             args = args.concat(["lib/Mac", "lib/Mac64"]);
+         args = buildMacExtra(args);
          command("tar", args);
       }
       else if (inBinary=="ios")
