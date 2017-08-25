@@ -15,7 +15,6 @@ class BinaryBuilder extends Builder
    override public function hasBinaries() return true;
 
  
-   public function buildSetup(dir:String) { }
    public function buildMac(dir:String) : Array<String> return [];
    public function buildWindows(dir:String) : Array<String> return [];
 
@@ -33,8 +32,6 @@ class BinaryBuilder extends Builder
          depend.updateHaxelib();
 
       var dir = getCheckoutDir();
-
-      buildSetup(dir);
 
       Sys.setCwd(dir + "/project" );
 

@@ -6,39 +6,57 @@ class NMEBuilder extends BinaryBuilder
 {
    public function new(inBs:BuildServer)
    {
-      super(inBs,"nme", "https://github.com/haxenme/nme",false);
-      removeBinaries(["rpi", "ios", "android"]);
+      super(inBs,"nme", "https://github.com/haxenme/nme");
       writeVersionFilename = "project/include/NmeVersion.h";
-      writeBinaryVersionFilename = "project/include/NmeBinVersion.h";
       writeHaxeVersionPackage = "nme";
       writeHaxeVersionPackageRoot = "src/";
       changesFile = "Changes.md";
       //useLatestProjects(["nme-dev"]);
    }
 
-   override public function buildMacExtra(args:Array<String>):Array<String>
+   override public function buildWindows(dir:String)
    {
-      var dir = getCheckoutDir();
-
-      Sys.setCwd(dir + "/project" );
-      command("haxelib", ["run","hxcpp","ToolkitBuild.xml","-Demscripten","-DHXCPP_JS_PRIME"]);
-
-      Sys.setCwd(dir + "/tools/make_classes" );
-      command("haxe", ["--run","MakeClasses.hx"]);
-
-      Sys.setCwd(dir);
-      return args.concat(["ndll/Emscripten"]);
+      command("haxelib", ["run", "hxcpp", "ToolkitBuild.xml", "-DHXCPP_M64"]);
+      command("haxelib", ["run", "hxcpp", "ToolkitBuild.xml", "-DHXCPP_M32"]);
+      Sys.setCwd(dir + "/acadnme" );
+      command("haxelib", ["run", "nme", "cpp", "nocompile"]);
+      Sys.setCwd(dir + "/samples/AcadnmeBoot" );
+      command("haxelib", ["run", "nme", "cppia", "installer"]);
+      Sys.setCwd(dir + "/acadnme" );
+      command("haxelib", ["run", "nme", "cpp", "build"]);
+      return ["ndll/Windows/nme.ndll",
+              "ndll/Windows64/nme.ndll",
+              "bin/Windows/Acadnme/Acadnme.exe"
+              ];
    }
 
+
+   override public function buildMac(dir:String)
+   {
+      command("haxelib", ["run", "hxcpp", "ToolkitBuild.xml"]);
+      command("haxelib", ["run", "hxcpp", "ToolkitBuild.xml", "-Dlinux"]);
+      command("neko", ["build.n", "jsprime"]);
+      Sys.setCwd(dir + "/acadnme" );
+      command("haxelib", ["run", "nme", "cpp", "nocompile"]);
+      Sys.setCwd(dir + "/samples/AcadnmeBoot" );
+      command("haxelib", ["run", "nme", "cppia", "installer"]);
+      Sys.setCwd(dir + "/acadnme" );
+      command("haxelib", ["run", "nme", "cpp", "build"]);
+      return ["ndll/Mac64/nme.ndll",
+              "ndll/Linux64/nme.ndll",
+              "ndll/Emscripten/nme.js",
+              "ndll/Emscripten/nme.js.mem",
+              "ndll/Emscripten/nmeclasses.js",
+              "ndll/Emscripten/preloader.js",
+              "ndll/Emscripten/parsenme.js",
+              "ndll/Emscripten/export_classes.info",
+              "bin/Mac/Acadnme.app",
+              "src/cppia/export_classes.info",
+              ];
  
-   override public function getBuildExtra(inBinary:String)
-   {
-      if (inBinary=="mac")
-        return [["mac-m64"]];
-      else if (inBinary=="linux")
-        return [["linux-m64"]];
-      return null;
    }
+
+
 
    override public function createWorkingCopy()
    {

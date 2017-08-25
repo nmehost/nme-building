@@ -21,11 +21,6 @@ class HxcppBuilder extends BinaryBuilder
       command("haxe", ["compile.hxml"]);
    }
 
-   override public function buildSetup(dir:String)
-   {
-      Sys.setCwd(dir + "/tools/hxcpp" );
-      command("haxe", ["compile.hxml"]);
-   }
 
    override public function buildWindows(dir:String)
    {
