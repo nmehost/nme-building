@@ -77,6 +77,17 @@ class Builder
          depends.push( bs.findDepend(depend) );
    }
 
+   public function updateDepends()
+   {
+      log("UPDATE " + depends);
+      for(depend in depends)
+         depend.updateHaxelib();
+   }
+
+
+
+   public function toString() return 'Project($name)';
+
    public function getCheckoutDir()
    {
       return scratchDir + "/" + name;
@@ -265,6 +276,7 @@ class Builder
 
    public function hasBinaries() return false;
 
+
    public function build()
    {
       var release = bs.releases.get(name);
@@ -287,6 +299,8 @@ class Builder
       }
       else
       {
+         updateDepends();
+
          if (hasBinaries())
             buildBinaries();
 
@@ -299,6 +313,7 @@ class Builder
 
    public function buildBinaries()
    {
+
       var dir = binDir + "/" + gitVersion;
       var base = dir + "/" + bs.host;
       var okFile = base+".ok";
@@ -470,9 +485,10 @@ class Builder
       command("rm",["-rf", newDir] );
 
       var release = binDir + "/releases/"+zipName;
+      var size = File.getBytes(release).length;
       command("rm",["-f", release] );
       command("mv",[zipName, binDir+"/releases/" + zipName] );
-      log("sending " + release + "...");
+      log("sending " + release + " x " + size + "...");
       Lib.sendWebFile(release, "releases/" + name + "/" + zipName);
       log("update release db... ");
 
@@ -544,7 +560,7 @@ class Builder
          {
             var release = binDir + "/releases/"+name + "-" + haxelib + ".zip";
 
-            command("haxelib", ["local", release ] );
+            command("haxelib", ["install", release ] );
          }
          if (!FileSystem.exists(bs.haxelibConfig + "/" + name + "/" + commas))
             throw "Failed to install " + name + " version " + haxelib;
@@ -558,7 +574,12 @@ class Builder
          lastGoodHaxelib = haxelib;
       }
       else 
-         log("... already good");
+      {
+         log("... already good - set");
+         command("haxelib", ["set", name, haxelib ] );
+         // Disable development
+         command("haxelib", ["dev", name] );
+      }
    }
 }
 

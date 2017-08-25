@@ -10,6 +10,7 @@ class BinaryBuilder extends Builder
       super(inBs,name,url);
       if (name!="hxcpp")
          useLatestProjects(["hxcpp"]);
+      log("DEPENDS " + name + " -> " + depends);
    }
 
    override public function hasBinaries() return true;
@@ -27,9 +28,6 @@ class BinaryBuilder extends Builder
          log("Build on windows");
       else
          throw "Unknown binary host";
-
-      for(depend in depends)
-         depend.updateHaxelib();
 
       var dir = getCheckoutDir();
 
