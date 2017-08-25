@@ -42,6 +42,7 @@ class NMEBuilder extends BinaryBuilder
       command("haxelib", ["run", "nme", "cppia", "installer"]);
       Sys.setCwd(dir + "/acadnme" );
       command("haxelib", ["run", "nme", "cpp", "build"]);
+      command("haxelib", ["run", "nme", "linux", "build", "-DHXCPP_M64" ]);
       return ["ndll/Mac64/nme.ndll",
               "ndll/Linux64/nme.ndll",
               "ndll/Emscripten/nme.js",
@@ -51,6 +52,7 @@ class NMEBuilder extends BinaryBuilder
               "ndll/Emscripten/parsenme.js",
               "ndll/Emscripten/export_classes.info",
               "bin/Mac/Acadnme.app",
+              "bin/Linux/Acadnme",
               "src/cppia/export_classes.info",
               ];
  

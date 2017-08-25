@@ -40,6 +40,8 @@ class HxcppBuilder extends BinaryBuilder
       files.push("bin/Mac64/Cppia");
       command("haxe", ["compile-cppia.hxml", "-D", "linux", "-D", "HXCPP_M64" ]);
       files.push("bin/Linux64/Cppia");
+      command("neko", ["build.n", "static-linux-m64", "-Dlinuxcompat" ]);
+      files.push("bin/Linux64");
       return files;
    }
 
