@@ -7,9 +7,10 @@ class BuildServer
    public var isWindows:Bool;
    public var isMac:Bool;
    public var isLinux:Bool;
+   public var isPrimary:Bool;
+   public var host:String;
+   public var hosts:Array<String>;
 
-   public var binaries:Array<String>;
-   public var allBinaries:Array<String>;
    public var builders:Array<Builder>;
    public var releases:Map<String,Release>;
 
@@ -71,9 +72,7 @@ class BuildServer
       if (init)
          Lib.initServer( bsDir + "/build/functions" );
 
-      var windowsBinaries = [ "windows" ];
-      var linuxBinaries = [ "linux" ];
-      var macBinaries = [ "mac", "ios", "linux", "android" ];
+      hosts = [ "mac", "windows" ];
 
       var lines = Builder.readStdout("haxelib",["config"]);
       if (lines.length!=1)
@@ -84,34 +83,20 @@ class BuildServer
       isWindows = (new EReg("window","i")).match(os);
       isMac = (new EReg("mac","i")).match(os);
       isLinux = (new EReg("linux","i")).match(os);
+      isPrimary = isMac;
 
-      if (isWindows)
-         binaries = windowsBinaries;
-      else if (isLinux)
-         binaries = linuxBinaries;
-      else if (isMac)
-         binaries = macBinaries;
-      else
+      if (!isMac && !isWindows)
          throw "Could not determine host";
-
-      allBinaries = windowsBinaries.copy();
-      for(b in linuxBinaries)
-         if (!Lambda.exists(allBinaries,function(x) return x==b))
-            allBinaries.push(b);
-      for(b in macBinaries)
-         if (!Lambda.exists(allBinaries,function(x) return x==b))
-            allBinaries.push(b);
-
+      host = isMac ? "mac" : "windows";
 
       builders = [];
       builders.push(new HxcppBuilder(this));
-      builders.push(new NMEDevBuilder(this));
-      builders.push(new NMEBuilder(this));
-      builders.push(new WaxeWorksBuilder(this));
-      builders.push(new WaxeBuilder(this));
-      builders.push(new Gm2dBuilder(this));
-      builders.push(new HxcppDebuggerBuilder(this));
-      builders.push(new AcadnmeBuilder(this));
+      //builders.push(new NMEBuilder(this));
+      //builders.push(new WaxeWorksBuilder(this));
+      //builders.push(new WaxeBuilder(this));
+      //builders.push(new Gm2dBuilder(this));
+      //builders.push(new HxcppDebuggerBuilder(this));
+
 
       var goes = isMac ? 100 : 1000000000;
       for(count in 0...goes)
@@ -159,8 +144,8 @@ class BuildServer
    static var firstRelease = true;
    public function getReleases()
    {
-      var host = Sys.getEnv("HURTS_HOST");
-      if (host==null)
+      var hurts = Sys.getEnv("HURTS_HOST");
+      if (hurts==null)
          throw("Please set HURTS_HOST for your site.");
 
       var extra = "";
@@ -172,7 +157,7 @@ class BuildServer
          extra = "?" + projs.join("&");
       }
 
-      var data = haxe.Http.requestUrl("http://" + host + "/api/versions.php" + extra);
+      var data = haxe.Http.requestUrl("http://" + hurts + "/api/versions.php" + extra);
       var obj = haxe.Json.parse(data);
       var fields = Reflect.fields(obj);
       for(f in fields)
@@ -194,7 +179,7 @@ class BuildServer
 
    public function shouldCreateRelease()
    {
-      return isMac;
+      return isPrimary;
    }
 
    public function log(s:String)
@@ -202,3 +187,5 @@ class BuildServer
       Sys.println(s);
    }
 }
+
+

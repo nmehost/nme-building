@@ -13,19 +13,15 @@ class Builder
    public var revisionMatch:EReg;
    public var commitMatch:EReg;
 
-   public var binaryVersion:Int=0;
    public var baseVersion:String="";
    public var gitVersion:String;
    public var cloneVersion:String;
    public var versionInfo:Dynamic=null;
 
-   public var binaries:Array<String>;
-   public var allBinaries:Array<String>;
    public var scratchDir:String;
    public var binDir:String;
    public var cloneDir:String;
    public var writeVersionFilename:String;
-   public var writeBinaryVersionFilename:String;
    public var writeHaxeVersionPackage:String;
    public var writeHaxeVersionPackageRoot:String = "";
    public var changesFile:String;
@@ -38,13 +34,12 @@ class Builder
    public var lastGoodHaxelib:String;
    public var lastGood:Bool;
 
-   public function new(inBs:BuildServer,inName:String,inHasBinaries:Bool, inUrl:String)
+   public function new(inBs:BuildServer,inName:String, inUrl:String)
    {
       revisionMatch = ~/^Revision: (\S+)/;
       commitMatch = ~/^commit (\S+)/;
       bs = inBs;
       name = inName;
-      binaryVersion = 0;
       gitVersion = "";
       depends = [];
       haxelibUpdated = false;
@@ -53,16 +48,6 @@ class Builder
       gitCmd = Sys.getEnv("BS_GIT");
       if (gitCmd==null || gitCmd=="")
         gitCmd = "git";
-      if (inHasBinaries)
-      {
-         binaries = bs.binaries.copy();
-         allBinaries = bs.allBinaries.copy();
-      }
-      else
-      {
-         binaries = [];
-         allBinaries = [];
-      }
 
       scratchDir = bs.scratchDir;
 
@@ -83,8 +68,6 @@ class Builder
       }
 
       setGitUrl(inUrl);
-
-      log(name + " binaries:" + binaries);
    }
 
    function useLatestProjects(inDepends:Array<String>)
@@ -93,45 +76,11 @@ class Builder
          depends.push( bs.findDepend(depend) );
    }
 
-   function filterBinaries(keep:Array<String>)
-   {
-      var filtered = new Array<String>();
-      for(b in allBinaries)
-         if (Lambda.exists(keep,function(x) return x==b))
-            filtered.push(b);
-      allBinaries = filtered;
-      //trace("->filtered all " + allBinaries );
-
-      var filtered = new Array<String>();
-      for(b in binaries)
-         if (Lambda.exists(keep,function(x) return x==b))
-            filtered.push(b);
-      binaries = filtered;
-      //trace("->filtered " + binaries );
-
-   }
-
-   function removeBinaries(remove:Array<String>)
-   {
-      var filtered = new Array<String>();
-      for(b in allBinaries)
-         if (!Lambda.exists(remove,function(x) return x==b))
-            filtered.push(b);
-      allBinaries = filtered;
-      trace(name + " ->filtered all " + allBinaries );
-
-      var filtered = new Array<String>();
-      for(b in binaries)
-         if (!Lambda.exists(remove,function(x) return x==b))
-            filtered.push(b);
-      binaries = filtered;
-      trace(name + " ->filtered " + binaries );
-   }
-
    public function getCheckoutDir()
    {
       return scratchDir + "/" + name;
    }
+
 
    public function setGitUrl(inUrl:String)
    {
@@ -190,6 +139,7 @@ class Builder
       return result;
    }
 
+
    public function updateClone(inVersion:String)
    {
       if (inVersion!=gitVersion)
@@ -227,7 +177,6 @@ class Builder
       var data:Dynamic = haxe.Json.parse(File.getContent(jsonFile));
       trace("Parsed " + data);
 
-      binaryVersion = Std.parseInt(data.binaryversion);
       baseVersion = data.version;
 
       updateVersionInfo();
@@ -236,7 +185,8 @@ class Builder
 
    public function  updateVersionInfo()
    {
-      var query = { binaryVersion:binaryVersion, base:baseVersion, git:gitVersion, project:name };
+      //var query = { binaryVersion:binaryVersion, base:baseVersion, git:gitVersion, project:name };
+      var query = { binaryVersion:0, base:baseVersion, git:gitVersion, project:name };
       log(query + "...");
       versionInfo = Lib.runJson("GetVersionInfo.n", query );
       log(versionInfo);
@@ -293,6 +243,7 @@ class Builder
               lines.join("\n") );
       }
 
+      /*
       if (writeBinaryVersionFilename!=null)
       {
          var define = name.toUpperCase() + "_BINARY_VERSION";
@@ -303,18 +254,15 @@ class Builder
            ];
         File.saveContent( writeBinaryVersionFilename, lines.join("\n") );
       }
+      */
    }
 
 
-   public function buildBinary(inBinary:String)
+   public function buildBinary( )
    {
-      log("Build :" + inBinary );
    }
 
-   public function hasBinaries()
-   {
-      return allBinaries.length > 0;
-   }
+   public function hasBinaries() return false;
 
    public function build()
    {
@@ -350,41 +298,39 @@ class Builder
 
    public function buildBinaries()
    {
-      var first = true;
-      var have:Array<Dynamic> = versionInfo.have;
-      log("Build binaries, have " + have );
-      for(bin in binaries)
-      {
-         var found = Lambda.exists(have,function(x) return bin==x);
-         if (!found)
-         {
-            log(bin + "...");
-            if (first)
-            {
-               createWorkingCopy();
-               writeVersions();
-               first = false;
-            }
+      var dir = binDir + "/" + gitVersion;
+      var base = dir + "/" + bs.host;
+      var okFile = base+".ok";
+      var errFile = base+".err";
 
-            buildBinary(bin);
-         }
-         else
+      if (FileSystem.exists(okFile))
+         log("Already built " + okFile);
+      else if (FileSystem.exists(errFile))
+      {
+         throw "Bad build - " + errFile;
+         log("Already bad");
+      }
+      else
+      {
+         FileSystem.createDirectory(dir);
+         try
          {
-            log("Already built :" + bin );
+            createWorkingCopy();
+            writeVersions();
+            buildBinary();
+         }
+         catch(d:Dynamic)
+         {
+            File.saveContent(errFile, "err");
+            throw "Bad build";
          }
       }
-   }
-
-   public function updateBinary(inPlatform:String)
-   {
-      var result = Lib.runJson("UpdateBinary.n",
-         { project:name, version:binaryVersion, platform:inPlatform } );
    }
 
    public function sendBinary(inFile:String)
    {
       log("Sending " + inFile + "...");
-      var dir = binDir + "/" + binaryVersion;
+      var dir = binDir + "/" + gitVersion;
 
       for(test in 0...2)
       {
@@ -404,6 +350,7 @@ class Builder
       command("cp", ["-rp", inFile, dest] );
       command("rm", [inFile]);
       log("Created " + dest);
+      File.saveContent(dir + "/" + bs.host + ".ok", "ok");
 
       /*
       var result = Lib.sendWebFile(inFile, "binaries/" + name + "/" + binaryVersion + "/" + inFile );
@@ -474,24 +421,23 @@ class Builder
       writeVersions(newVersion);
 
       log("Getting binaries...");
-      for(bin in allBinaries)
+      if (hasBinaries())
       {
-         var file = name + "-bin-" + bin + ".tgz";
-         var dir = binDir + "/" + binaryVersion;
-
-         var binFile = dir + "/" + file;
-         var bytes:haxe.io.Bytes = null;
-         if (FileSystem.exists(binFile))
+         for(bin in bs.hosts)
+         {
+            var file = bin + ".tgz";
+            var binFile = binDir + "/" + gitVersion + "/" + file;
+   
+            var bytes:haxe.io.Bytes = null;
+            if (FileSystem.exists(binFile))
             bytes = File.getBytes(binFile);
-         else
-            throw "Missing binary " + binFile;
-         File.saveBytes( file, bytes );
-         command("tar", [ "xvzf", file ]);
-         command("rm", [  file ]);
-      }
+            else
+               throw "Missing binary " + binFile;
+            File.saveBytes( file, bytes );
+            command("tar", [ "xvzf", file ]);
+            command("rm", [  file ]);
+         }
 
-      if (allBinaries.length>0)
-      {
          if (FileSystem.exists("bin"))
          {
             command("chmod",["-R", "755", "bin" ]);
@@ -537,16 +483,28 @@ class Builder
    {
       if (hasBinaries())
       {
-         var ver = binaryVersion;
          log("Check binaries built...");
          updateVersionInfo();
-
-         var have:Array<Dynamic> = versionInfo.have;
-         if (have.length < allBinaries.length)
+         if (!versionInfo.isReleased)
          {
-            log("binaries not built yet : " + have.length + "/" + allBinaries.length );
-            return;
+            for(bin in bs.hosts)
+            {
+               var base = binDir + "/" + gitVersion + "/" + bin;
+               if (FileSystem.exists(base+".ok"))
+               {
+                  // ok
+               }
+               else if (FileSystem.exists(base+".err"))
+                  throw "errors building " + bin;
+               else
+                  throw "waiting " + bin;
+            }
+
+            log("All binaries built");
+            versionInfo.binState = "ok";
          }
+         else
+            versionInfo.binState = "released";
       }
 
       if (!versionInfo.isReleased)
@@ -559,13 +517,6 @@ class Builder
       }
    }
 
-   public function getServerBinaries(inVersion:Int)
-   {
-      var query:Dynamic = {};
-      query.project = name;
-      query.binaryVersion = inVersion;
-      return Lib.runJson("QueryBinaries.n", query );
-   }
 
    public function updateHaxelib()
    {
