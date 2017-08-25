@@ -46,8 +46,9 @@ class BuildServer
       log("Using scratchDir " + scratchDir);
 
       binDir = Sys.getEnv("BS_BIN_DIR");
-      if (binDir==null || binDir=="" || !FileSystem.exists(binDir))
-        throw "Shared binary directory BS_BIN_DIR not found scratchDir '" + scratchDir + "'";
+      log("Using binDir " + binDir);
+      if (binDir==null || binDir=="" /*|| !FileSystem.exists(binDir)*/)
+        throw "Shared binary directory BS_BIN_DIR '" + binDir + "' not found scratchDir '" + scratchDir + "'";
  
       var projects = new Array<String>();
       var args = Sys.args();

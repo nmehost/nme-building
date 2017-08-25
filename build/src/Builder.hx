@@ -66,6 +66,7 @@ class Builder
             throw("Unable to create " + inName);
          }
       }
+      log(name + " binDir = " + binDir);
 
       setGitUrl(inUrl);
    }
@@ -347,7 +348,7 @@ class Builder
       if (FileSystem.exists(dest))
          command("rm", [dest]);
 
-      command("cp", ["-rp", inFile, dest] );
+      command("cp", [inFile, dest] );
       command("rm", [inFile]);
       log("Created " + dest);
       File.saveContent(dir + "/" + bs.host + ".ok", "ok");
