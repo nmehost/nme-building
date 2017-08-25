@@ -63,6 +63,7 @@ class NMEBuilder extends BinaryBuilder
       super.createWorkingCopy();
       log("Build nme.n...");
       var dir = getCheckoutDir();
+      command("haxelib", ["dev","nme",dir]);
       Sys.setCwd(dir + "/tools/nme" );
       command("haxe", ["compile.hxml"]);
    }
