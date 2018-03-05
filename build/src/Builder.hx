@@ -385,6 +385,8 @@ class Builder
          throw "Error running command: " + cmd + " " + args.join(" ");
    }
 
+   public function onVersionWritten() { }
+
    public function buildRelease(buildNumber:Int)
    {
       log("Releasing " + buildNumber);
@@ -436,6 +438,8 @@ class Builder
 
       writeVersions(newVersion);
 
+      onVersionWritten();
+
       log("Getting binaries...");
       if (hasBinaries())
       {
@@ -481,11 +485,11 @@ class Builder
       command("mv",[dir,newDir] );
       var zipName = name + "-" + newVersion + ".zip";
       command("rm",["-f", zipName] );
-      command("zip",["-r", zipName, newDir] );
+      command("zip",["-rg", zipName, newDir] );
       command("rm",["-rf", newDir] );
 
+      var size = File.getBytes(zipName).length;
       var release = binDir + "/releases/"+zipName;
-      var size = File.getBytes(release).length;
       command("rm",["-f", release] );
       command("mv",[zipName, binDir+"/releases/" + zipName] );
       log("sending " + release + " x " + size + "...");

@@ -110,7 +110,7 @@ class Lib
 
    public static function sendWebFile(inSource:String, inDest:String) : String
    {
-      var size = 1024*1024;
+      var size = 1024*1024*200;
 
       var bytes = File.getBytes(inSource);
       if (partsDir=="" || bytes.length<=size)
@@ -130,7 +130,24 @@ class Lib
             var src = partsDir + "/" + partName;
             var send = remaining < size ? remaining : size;
             File.saveBytes( src, bytes.sub(sent, send) );
-            sendFile(src,dest + partName);
+            for(attempt in 0...10)
+            {
+               if (attempt==9)
+                  sendFile(src,dest + partName);
+               else
+               {
+                  try
+                  {
+                     sendFile(src,dest + partName);
+                     break;
+                  }
+                  catch (e:Dynamic)
+                  {
+                     Sys.println("  error, try again:" + e);
+                     Sys.sleep(20);
+                  }
+               }
+            }
             remaining -= send;
             sent += send;
          }

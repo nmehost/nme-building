@@ -59,6 +59,14 @@ class NMEBuilder extends BinaryBuilder
    }
 
 
+   override public function onVersionWritten()
+   {
+      var dir = getCheckoutDir();
+      command("haxelib", ["dev","nme",dir]);
+      Sys.setCwd(dir + "/tools/nme" );
+      command("haxe", ["compile.hxml"]);
+      Sys.setCwd(dir);
+   }
 
    override public function createWorkingCopy()
    {
