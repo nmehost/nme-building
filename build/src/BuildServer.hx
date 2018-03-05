@@ -95,7 +95,8 @@ class BuildServer
       builders.push(new NMEBuilder(this));
       //builders.push(new WaxeWorksBuilder(this));
       //builders.push(new WaxeBuilder(this));
-      //builders.push(new Gm2dBuilder(this));
+      builders.push(new Gm2dBuilder(this));
+      builders.push(new NumerixBuilder(this));
       //builders.push(new HxcppDebuggerBuilder(this));
 
 
